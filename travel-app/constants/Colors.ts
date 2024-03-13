@@ -1,3 +1,11 @@
+/**
+ * This file contains all the constant values related
+ * to styles used in the application, from colors to 
+ * standard sizes...
+ */
+
+
+// accent colors
 const tintColorLight = '#3B82F6';
 const tintColorDark = '#fff';
 

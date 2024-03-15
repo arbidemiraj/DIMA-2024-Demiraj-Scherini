@@ -3,13 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/schema'
 
-// If the variable is not undefined assign the correct value,  
-// otherwise an empty string since the createClient function accepts string only
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_API_URL ?? '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_API_KEY ?? '';
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_API_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_API_KEY;
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+// The exclamation mark (!) is a TypeScript feature -> non-null assertion operator. 
+// Compiler trusts that the value of the expression it's not null or undefined.
+export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,

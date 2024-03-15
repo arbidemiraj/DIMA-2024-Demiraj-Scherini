@@ -1,7 +1,19 @@
 import { StyleSheet } from 'react-native';
 import { Text, View } from '@/components/Themed';
-
+import { supabase } from '@/lib/supabase';
+import { useEffect } from 'react';
 export default function TabOneScreen() {
+
+  // Test for supabase query -> WORKING CORRECTLY
+  /*   useEffect(() => {
+      getTrips();
+    }, []);
+  
+    const getTrips = async () => {
+      const { data, error } = await supabase.from('trip').select('*');
+      console.log(data);
+    }
+   */
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Explore</Text>

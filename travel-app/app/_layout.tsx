@@ -8,7 +8,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 // Makes sure the user is authenticated before accessing protected pages
 const InitialLayout = () => {
   const { session, initialized } = useAuth();
-  const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {

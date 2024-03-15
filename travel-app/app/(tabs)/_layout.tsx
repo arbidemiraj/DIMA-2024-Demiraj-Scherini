@@ -29,6 +29,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Explore',
+          headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
         }}
       />
@@ -36,6 +37,7 @@ export default function TabLayout() {
         name="favourites"
         options={{
           title: 'Favourites',
+          headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
         }}
       />
@@ -43,6 +45,7 @@ export default function TabLayout() {
         name="newJournal"
         options={{
           title: 'New Journal',
+          headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
         }}
       />
@@ -50,6 +53,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Your Profile',
+          headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />

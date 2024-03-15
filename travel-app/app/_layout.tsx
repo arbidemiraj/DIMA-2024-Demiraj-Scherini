@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from '../provider/AuthProvider';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useColorScheme } from '@/components/useColorScheme';
 
-
 // Makes sure the user is authenticated before accessing protected pages
 const InitialLayout = () => {
   const { session, initialized } = useAuth();

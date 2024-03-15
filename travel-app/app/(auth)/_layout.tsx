@@ -3,7 +3,7 @@ import { Slot, Stack } from 'expo-router'
 
 export default function AuthLayout() {
   return (
-    <Stack />
+    <Stack screenOptions={{ headerTitleAlign: "center", title: "Login/SignUp" }} />
   )
 }
 

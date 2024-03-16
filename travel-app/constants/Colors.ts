@@ -4,7 +4,6 @@
  * standard sizes...
  */
 
-
 // accent colors
 const tintColorLight = '#3B82F6';
 const tintColorDark = '#fff';

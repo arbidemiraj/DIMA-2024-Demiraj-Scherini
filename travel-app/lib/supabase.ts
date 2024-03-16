@@ -1,11 +1,15 @@
 import 'react-native-url-polyfill/auto'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
+import { Database } from '@/types/schema'
 
-const supabaseUrl = "https://yksbvdkpcrrszwkjmnee.supabase.co"
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlrc2J2ZGtwY3Jyc3p3a2ptbmVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk5MjE5NzMsImV4cCI6MjAyNTQ5Nzk3M30.Tj5JraIsoB8Fp5GsnExtFedaZHojxJ_ie_Y6G71tqyU"
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_API_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_API_KEY;
+
+// The exclamation mark (!) is a TypeScript feature -> non-null assertion operator. 
+// Compiler trusts that the value of the expression it's not null or undefined.
+export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,

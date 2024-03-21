@@ -21,10 +21,10 @@ export default memo(function TripCard({ trip }: Props) {
           <View style={styles.scoreContainer}>
             {/* TODO: can use an icon instead of text*/}
             <Text style={[styles.star, { color: useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint }]}>✱</Text>
-            <Text style={styles.score}>{trip.score}</Text>
+            <Text style={styles.score}>{trip.score?.toFixed(1)}</Text>
           </View>
         </View>
-        <Text style={{ fontWeight: '300' }}>Author - {trip.profile_trip[0].profile.username}</Text>
+        <Text style={{ fontWeight: '300' }}>Author - {trip.partecipants[0].profile.username}</Text>
         <Text style={{ fontWeight: '300' }}>
           {/* TODO: remove ! and fix DB*/}
           From {useDateFormatter(trip.start_date!)} to {useDateFormatter(trip.end_date!)}

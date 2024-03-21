@@ -11,7 +11,7 @@ export type Category = Tables<'category'>;
 
 export type TripDetails = Trip & {
   categories: Category[];
-  profile_trip: {
+  partecipants: {
     role: string;
     profile: Profile;
   }[];

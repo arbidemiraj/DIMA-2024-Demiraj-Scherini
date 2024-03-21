@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 import { View } from '@/components/Themed';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
@@ -48,7 +48,7 @@ export default function TabOneScreen() {
         score: trip.score,
         name: trip.name,
         categories: trip.category,
-        profile_trip: trip.profile_trip.map((profileTrip) => ({
+        partecipants: trip.profile_trip.map((profileTrip) => ({
           // TODO: remove ! and fix DB
           // must be fixed in the DB, they cannot be null, then remove the !
           role: profileTrip.role!,

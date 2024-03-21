@@ -1,4 +1,4 @@
-import { StyleSheet, TextInput } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { View } from '@/components/Themed';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';

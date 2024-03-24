@@ -1,9 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { View } from '@/components/Themed';
+import { StyleSheet, TextInput } from 'react-native';
+import { Text, View } from '@/components/Themed';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { TripDetails } from '@/types/types';
 import TripList from '@/components/TripList';
+import GooglePlacesInput from '@/components/GooglePlacesInput';
 
 export default function TabOneScreen() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
@@ -72,6 +73,7 @@ export default function TabOneScreen() {
 
   return (
     <View style={styles.container}>
+      <GooglePlacesInput />
       <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
     </View>
   );

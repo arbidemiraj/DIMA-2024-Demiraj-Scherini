@@ -7,15 +7,16 @@ import Colors from '@/constants/Colors';
 
 const GooglePlacesInput = () => {
   const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
-  
+
   return (
     <SafeAreaView>
-        <GooglePlacesAutocomplete
-        placeholder="Discover wonderful experencies..."
-        query={{key: apiKey}}
+      <GooglePlacesAutocomplete
+        placeholder='Discover by...'
+        enablePoweredByContainer={false}
+        query={{ key: apiKey }}
         fetchDetails={true}
         onPress={(data, details = null) => console.log(data, details)}
-        onFail={error => console.log(error)}
+        onFail={(error) => console.log(error)}
         onNotFound={() => console.log('no results')}
         textInputProps={{
           placeholderTextColor: useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text,
@@ -23,7 +24,7 @@ const GooglePlacesInput = () => {
         styles={{
           container: {
             flex: 0,
-            marginTop: 50,
+            marginTop: 10,
             paddingHorizontal: 20,
           },
           description: {
@@ -38,16 +39,16 @@ const GooglePlacesInput = () => {
 
             ...Platform.select({
               ios: {
-                shadowColor: "#000",
+                shadowColor: '#000',
                 shadowOffset: {
                   width: 0,
-                  height: 5,
+                  height: 2,
                 },
-                shadowOpacity: 0.34,
-                shadowRadius: 6.27,
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
               },
-              android: {               
-                elevation: 10,
+              android: {
+                elevation: 5,
               },
             }),
           },
@@ -69,25 +70,9 @@ const GooglePlacesInput = () => {
             backgroundColor: useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background, // Background color of 'powered by Google' row
           },
         }}
-        renderLeftButton={() => (
-          <FontAwesome
-            name='search'
-            size={22}
-            color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text}
-            style={{ marginRight: 10,
-            marginLeft: 15 }} 
-          />
-        )}
-
-        renderRightButton={() => (
-          <FontAwesome
-            name='filter'
-            size={22}
-            color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text}
-            style={{marginRight: 15}} 
-          />
-        )}
-        />
+        renderLeftButton={() => <FontAwesome name='search' size={22} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ marginRight: 10, marginLeft: 15 }} />}
+        renderRightButton={() => <FontAwesome name='filter' size={22} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ marginRight: 15 }} />}
+      />
     </SafeAreaView>
   );
 };

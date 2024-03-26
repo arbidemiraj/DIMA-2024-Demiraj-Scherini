@@ -28,7 +28,6 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           title: 'Explore',
-          headerShown: false,
           headerTitleAlign: 'center',
           tabBarIcon: ({ color }) => <TabBarIcon name='search' color={color} />,
         }}

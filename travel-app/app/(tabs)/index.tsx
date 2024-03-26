@@ -1,5 +1,5 @@
-import { StyleSheet, TextInput } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet } from 'react-native';
+import { View } from '@/components/Themed';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { TripDetails } from '@/types/types';
@@ -82,5 +82,6 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: 'hidden',
   },
 });

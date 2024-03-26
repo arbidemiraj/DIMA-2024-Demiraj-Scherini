@@ -28,6 +28,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          headerShown: false,
           title: 'Explore',
           headerTitleAlign: "center",
           tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,

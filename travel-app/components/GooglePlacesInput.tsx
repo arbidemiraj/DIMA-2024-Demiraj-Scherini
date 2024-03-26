@@ -1,17 +1,19 @@
 import React from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import { Platform, SafeAreaView } from 'react-native';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Platform, Pressable, View } from 'react-native';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
+import { Iconify } from 'react-native-iconify';
 
 const GooglePlacesInput = () => {
   const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
 
+  const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+
   return (
-    <SafeAreaView>
+    <View>
       <GooglePlacesAutocomplete
-        placeholder='Discover by...'
+        placeholder='Discover by place...'
         enablePoweredByContainer={false}
         query={{ key: apiKey }}
         fetchDetails={true}
@@ -70,10 +72,14 @@ const GooglePlacesInput = () => {
             backgroundColor: useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background, // Background color of 'powered by Google' row
           },
         }}
-        renderLeftButton={() => <FontAwesome name='search' size={22} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ marginRight: 10, marginLeft: 15 }} />}
-        renderRightButton={() => <FontAwesome name='filter' size={22} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ marginRight: 15 }} />}
+        renderLeftButton={() => <Iconify icon='material-symbols:search' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />}
+        renderRightButton={() => (
+          <Pressable onPress={() => console.log('hello')}>
+            <Iconify icon='lucide:settings-2' size={24} color={iconColor} style={{ marginRight: 15, marginLeft: 5 }} />
+          </Pressable>
+        )}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

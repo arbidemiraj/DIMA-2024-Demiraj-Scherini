@@ -17,6 +17,12 @@ type ThemeProps = {
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
 export type SafeAreaViewProps = ThemeProps & DefaultSafeAreaProps & { edges: string[] };
+export type IconifyProps = {
+  icon: string;
+  size: number;
+  color: string;
+} & ThemeProps &
+  TextProps;
 
 export function useThemeColor(props: { light?: string; dark?: string }, colorName: keyof typeof Colors.light & keyof typeof Colors.dark) {
   const theme = useColorScheme() ?? 'light';

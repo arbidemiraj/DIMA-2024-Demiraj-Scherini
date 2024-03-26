@@ -1,11 +1,11 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../provider/AuthProvider';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useColorScheme } from '@/components/useColorScheme';
-import { useFonts } from 'expo-font';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 // Makes sure the user is authenticated before accessing protected pages
 const InitialLayout = () => {
@@ -39,9 +39,13 @@ const RootLayout = () => {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
-          <InitialLayout />
-        </AuthProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <BottomSheetModalProvider>
+            <AuthProvider>
+              <InitialLayout />
+            </AuthProvider>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
       </ThemeProvider>
     </SafeAreaProvider>
   );

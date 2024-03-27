@@ -1,14 +1,28 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { Platform, Pressable, View } from 'react-native';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import CategoriesBottomSheet from '@/components/CategoriesBottomSheet';
 
-const GooglePlacesInput = () => {
+interface Props {
+  toggleOverlay: () => void;
+}
+
+const GooglePlacesInput = ({ toggleOverlay }: Props) => {
   const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
 
   const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+
+  // ref
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const toggleModal = () => {
+    bottomSheetModalRef.current?.present();
+    toggleOverlay();
+  };
 
   return (
     <View>
@@ -74,11 +88,15 @@ const GooglePlacesInput = () => {
         }}
         renderLeftButton={() => <Iconify icon='material-symbols:search' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />}
         renderRightButton={() => (
-          <Pressable onPress={() => console.log('hello')}>
+          // this is the filter category menu button
+          <Pressable onPress={toggleModal}>
             <Iconify icon='lucide:settings-2' size={24} color={iconColor} style={{ marginRight: 15, marginLeft: 5 }} />
           </Pressable>
         )}
       />
+
+      {/* custom component used for the modal filter menu */}
+      <CategoriesBottomSheet ref={bottomSheetModalRef} toggleOverlay={toggleOverlay} />
     </View>
   );
 };

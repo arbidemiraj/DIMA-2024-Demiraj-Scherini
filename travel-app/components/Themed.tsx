@@ -19,7 +19,7 @@ type ThemeProps = {
 
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
-export type SafeAreaViewProps = ThemeProps & DefaultSafeAreaProps & { edges: string[] };
+export type SafeAreaViewProps = ThemeProps & DefaultSafeAreaProps & { edges?: string[] };
 export type BottomSheetViewProps = ThemeProps & DefaultBottomSheetProps;
 
 export function useThemeColor(props: { light?: string; dark?: string }, colorName: keyof typeof Colors.light & keyof typeof Colors.dark) {

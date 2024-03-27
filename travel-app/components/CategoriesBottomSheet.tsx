@@ -1,10 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import React, { forwardRef, useMemo } from 'react';
-import { Text, View, BottomSheetView } from '@/components/Themed';
+import { Text, View, BottomSheetView, SafeAreaView } from '@/components/Themed';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
-
+import CustomButton from './CustomButton';
+import { FoodIcon, SportIcon, NatureIcon, AdventureIcon, LuxoryIcon, RoadTripIcon, CultureIcon, MuseumIcon, MonumentIcon, WildlifeIcon } from './CategoryIcons';
 export type Ref = BottomSheetModal;
 
 // the components accepts a function to handle the overlay
@@ -19,6 +20,10 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOve
   const isLightTheme = useColorScheme() === 'light';
   const snapPoints = useMemo(() => ['50%'], []);
 
+  const handlePress = (value: string) => {
+    console.log(value);
+  };
+
   return (
     <View style={styles.container}>
       <BottomSheetModal ref={ref} snapPoints={snapPoints} index={0} onDismiss={toggleOverlay} backgroundStyle={{ backgroundColor: isLightTheme ? Colors.light.background : Colors.dark.background }} handleIndicatorStyle={{ backgroundColor: isLightTheme ? Colors.light.text : Colors.dark.text }}>
@@ -29,10 +34,22 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOve
           <View style={styles.categoryBox}>
             <Text style={styles.title}>Category</Text>
             <Text>Select one or more</Text>
+            <View style={styles.catList}>
+              <FoodIcon func={handlePress} size={28} />
+              <SportIcon func={handlePress} size={28} />
+              <NatureIcon func={handlePress} size={28} />
+              <AdventureIcon func={handlePress} size={28} />
+              <LuxoryIcon func={handlePress} size={28} />
+              <RoadTripIcon func={handlePress} size={28} />
+              <CultureIcon func={handlePress} size={28} />
+              <MuseumIcon func={handlePress} size={28} />
+              <MonumentIcon func={handlePress} size={28} />
+              <WildlifeIcon func={handlePress} size={28} />
+            </View>
           </View>
-          <View style={styles.btnGroup}>
-            <Text>Remove Filters</Text>
-            <Text>Apply Filters</Text>
+          <View style={[styles.btnGroup, { paddingBottom: Platform.OS === 'ios' ? 30 : 20 }]}>
+            <CustomButton text='Remove Filters' altStyle={true} func={() => console.log('pressed 1')} />
+            <CustomButton text='Apply Filters' altStyle={false} func={() => console.log('pressed 2')} />
           </View>
         </BottomSheetView>
       </BottomSheetModal>
@@ -44,6 +61,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    width: '100%',
   },
   header: {
     paddingVertical: 15,
@@ -59,11 +77,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     flex: 1,
   },
+  catList: {
+    paddingVertical: 20,
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
   btnGroup: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 15,
-    flex: 0.2,
+    paddingTop: 20,
   },
 });

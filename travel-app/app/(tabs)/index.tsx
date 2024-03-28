@@ -5,6 +5,7 @@ import { TripDetails } from '@/types/types';
 import TripList from '@/components/TripList';
 import GooglePlacesInput from '@/components/GooglePlacesInput';
 import { SafeAreaView, View } from '@/components/Themed';
+import Animated, { Easing, useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
 export default function TabOneScreen() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
@@ -12,6 +13,12 @@ export default function TabOneScreen() {
   const [page, setPage] = useState<number>(1); // starting page is 1
   const [pageSize, setPageSize] = useState<number>(5); // page content size is 5
   const [hasMore, setHasMore] = useState<boolean>(true);
+  // overlay logic
+  const [showOverlay, setShowOverlay] = useState<boolean>(false);
+
+  const toggleOverlay = () => {
+    setShowOverlay(!showOverlay);
+  };
 
   useEffect(() => {
     getTrips();
@@ -74,9 +81,10 @@ export default function TabOneScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
-        <GooglePlacesInput />
+        <GooglePlacesInput toggleOverlay={toggleOverlay} />
       </SafeAreaView>
       <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
+      {showOverlay && <View style={styles.overlay} />}
     </View>
   );
 }
@@ -84,5 +92,9 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
   },
 });

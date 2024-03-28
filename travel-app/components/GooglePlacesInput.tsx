@@ -1,17 +1,34 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import { Platform, SafeAreaView } from 'react-native';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Platform, Pressable, View } from 'react-native';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
+import { Iconify } from 'react-native-iconify';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import CategoriesBottomSheet from '@/components/CategoriesBottomSheet';
 
-const GooglePlacesInput = () => {
+interface Props {
+  toggleOverlay: () => void;
+}
+
+const GooglePlacesInput = ({ toggleOverlay }: Props) => {
   const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
 
+  const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+
+  // ref to BottomSheetModal
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  // function to open the Filter tab
+  const toggleModal = () => {
+    bottomSheetModalRef.current?.present();
+    toggleOverlay(); // toggles opacity overlay
+  };
+
   return (
-    <SafeAreaView>
+    <View>
       <GooglePlacesAutocomplete
-        placeholder='Discover by...'
+        placeholder='Discover by place...'
         enablePoweredByContainer={false}
         query={{ key: apiKey }}
         fetchDetails={true}
@@ -70,10 +87,18 @@ const GooglePlacesInput = () => {
             backgroundColor: useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background, // Background color of 'powered by Google' row
           },
         }}
-        renderLeftButton={() => <FontAwesome name='search' size={22} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ marginRight: 10, marginLeft: 15 }} />}
-        renderRightButton={() => <FontAwesome name='filter' size={22} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ marginRight: 15 }} />}
+        renderLeftButton={() => <Iconify icon='material-symbols:search' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />}
+        renderRightButton={() => (
+          // this is the filter category menu button
+          <Pressable onPress={toggleModal}>
+            <Iconify icon='lucide:settings-2' size={24} color={iconColor} style={{ marginRight: 15, marginLeft: 5 }} />
+          </Pressable>
+        )}
       />
-    </SafeAreaView>
+
+      {/* custom component used for the modal filter menu */}
+      <CategoriesBottomSheet ref={bottomSheetModalRef} toggleOverlay={toggleOverlay} />
+    </View>
   );
 };
 

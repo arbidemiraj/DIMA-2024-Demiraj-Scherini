@@ -1,8 +1,13 @@
-import { FlatList, ActivityIndicator, useColorScheme, useWindowDimensions } from 'react-native';
-import React, { useState } from 'react';
+import { FlatList, ActivityIndicator, useColorScheme } from 'react-native';
+import React from 'react';
 import { TripDetails } from '@/types/types';
 import Colors from '@/constants/Colors';
 import TripCard from './TripCard';
+
+/**
+ * TripList: component that displays the list of Trip passed as
+ * a prop. Has some additional logic (handleEndReached, renderFooter)
+ */
 
 interface Props {
   trips: TripDetails[];

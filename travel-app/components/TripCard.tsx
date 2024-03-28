@@ -6,6 +6,16 @@ import useDateFormatter from '@/hooks/useDateFormatter';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 
+/**
+ * TripCard: component that renders a Trip general details
+ * Trip details displayed:
+ *  - cover
+ *  - name
+ *  - author
+ *  - score
+ *  - start & end dates
+ */
+
 interface Props {
   trip: TripDetails;
 }

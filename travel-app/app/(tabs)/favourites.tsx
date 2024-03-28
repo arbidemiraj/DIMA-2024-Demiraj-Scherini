@@ -1,20 +1,14 @@
-import { StyleSheet } from 'react-native'
-import React from 'react'
+import { StyleSheet } from 'react-native';
 import { Text, View } from '@/components/Themed';
+import React from 'react';
 
 export default function Favourites() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Favouirtes</Text>
-    </View>
-  )
+  return <View style={styles.container}></View>;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 20,

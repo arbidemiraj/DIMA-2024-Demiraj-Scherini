@@ -6,22 +6,28 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
 import CustomButton from './CustomButton';
 import { FoodIcon, SportIcon, NatureIcon, AdventureIcon, LuxoryIcon, RoadTripIcon, CultureIcon, MuseumIcon, MonumentIcon, WildlifeIcon } from './CategoryIcons';
+import useStore from '@/store/store';
+
 export type Ref = BottomSheetModal;
 
 // the components accepts a function to handle the overlay
 // applied on the whole page when the bottom sheet is shown
+// it also accepts the function to handle filter applying and cleaning
 interface Props {
   toggleOverlay: () => void;
+  applyFilters: () => void;
+  removeFilters: () => void;
 }
 
 // forwardRef enables us to pass a ref from a parent component down
 // to a child, ensuring that we can still access and interact with DOM elements
-export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOverlay }: Props, ref) {
+export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOverlay, applyFilters, removeFilters }: Props, ref) {
   const isLightTheme = useColorScheme() === 'light';
   const snapPoints = useMemo(() => ['50%'], []);
+  const { toggleCategory } = useStore();
 
   const handlePress = (value: string) => {
-    console.log(value);
+    toggleCategory(value);
   };
 
   return (
@@ -48,8 +54,8 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOve
             </View>
           </View>
           <View style={[styles.btnGroup, { paddingBottom: Platform.OS === 'ios' ? 30 : 20 }]}>
-            <CustomButton text='Remove Filters' altStyle={true} func={() => console.log('pressed 1')} />
-            <CustomButton text='Apply Filters' altStyle={false} func={() => console.log('pressed 2')} />
+            <CustomButton text='Remove Filters' altStyle={true} func={removeFilters} />
+            <CustomButton text='Apply Filters' altStyle={false} func={applyFilters} />
           </View>
         </BottomSheetView>
       </BottomSheetModal>

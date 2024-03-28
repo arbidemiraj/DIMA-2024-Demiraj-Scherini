@@ -5,7 +5,6 @@ import { TripDetails } from '@/types/types';
 import TripList from '@/components/TripList';
 import GooglePlacesInput from '@/components/GooglePlacesInput';
 import { SafeAreaView, View } from '@/components/Themed';
-import Animated, { Easing, useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
 export default function TabOneScreen() {
   const [trips, setTrips] = useState<TripDetails[]>([]);

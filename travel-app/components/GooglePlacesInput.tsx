@@ -6,6 +6,7 @@ import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import CategoriesBottomSheet from '@/components/CategoriesBottomSheet';
+import useStore from '@/store/store';
 
 interface Props {
   toggleOverlay: () => void;
@@ -23,6 +24,13 @@ const GooglePlacesInput = ({ toggleOverlay }: Props) => {
   const toggleModal = () => {
     bottomSheetModalRef.current?.present();
     toggleOverlay(); // toggles opacity overlay
+  };
+
+  // category filters logic
+  const { categoriesList, cleanList } = useStore();
+  const applyFilters = () => {
+    bottomSheetModalRef.current?.dismiss();
+    console.log(categoriesList);
   };
 
   return (
@@ -97,7 +105,7 @@ const GooglePlacesInput = ({ toggleOverlay }: Props) => {
       />
 
       {/* custom component used for the modal filter menu */}
-      <CategoriesBottomSheet ref={bottomSheetModalRef} toggleOverlay={toggleOverlay} />
+      <CategoriesBottomSheet ref={bottomSheetModalRef} toggleOverlay={toggleOverlay} applyFilters={applyFilters} removeFilters={cleanList} />
     </View>
   );
 };

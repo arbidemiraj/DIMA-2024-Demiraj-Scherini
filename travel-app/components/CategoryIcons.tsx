@@ -128,6 +128,8 @@ function SelectableIcon({ value, bgColor, func, children }: Props) {
 
   const { categoriesList } = useStore();
 
+  // to handle when applying the border we useuseEffect and
+  // re-render only when the array of categories changes
   useEffect(() => {
     if (categoriesList.includes(value)) {
       setIsSelected(true);

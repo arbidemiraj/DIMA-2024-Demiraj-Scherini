@@ -1,9 +1,10 @@
 import { Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { View } from 'react-native';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { Iconify } from 'react-native-iconify';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
+import useStore from '@/store/store';
 
 /**
  * Each icon must be defined as its own component since
@@ -125,15 +126,27 @@ function SelectableIcon({ value, bgColor, func, children }: Props) {
   const [isSelected, setIsSelected] = useState<boolean>(false);
   const isLightTheme = useColorScheme() === 'light';
 
+  const { categoriesList } = useStore();
+
+  // to handle when applying the border we useuseEffect and
+  // re-render only when the array of categories changes
+  useEffect(() => {
+    if (categoriesList.includes(value)) {
+      setIsSelected(true);
+    } else {
+      setIsSelected(false);
+    }
+  }, [categoriesList]);
+
   const habdlePress = () => {
     func(value);
-    setIsSelected(!isSelected);
   };
 
   const computeSelectedStyle = (): ViewStyle => {
     if (!isSelected) return { borderColor: 'transparent' };
     return { borderColor: isLightTheme ? Colors.light.text : Colors.dark.text };
   };
+
   return (
     <Pressable onPress={habdlePress}>
       <View style={[styles.container, computeSelectedStyle(), { backgroundColor: bgColor, borderWidth: 2 }]}>{children}</View>

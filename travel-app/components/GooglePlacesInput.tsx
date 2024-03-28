@@ -16,12 +16,13 @@ const GooglePlacesInput = ({ toggleOverlay }: Props) => {
 
   const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
-  // ref
+  // ref to BottomSheetModal
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
+  // function to open the Filter tab
   const toggleModal = () => {
     bottomSheetModalRef.current?.present();
-    toggleOverlay();
+    toggleOverlay(); // toggles opacity overlay
   };
 
   return (

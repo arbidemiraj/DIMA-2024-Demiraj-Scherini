@@ -4,6 +4,11 @@ import { TripDetails } from '@/types/types';
 import Colors from '@/constants/Colors';
 import TripCard from './TripCard';
 
+/**
+ * TripList: component that displays the list of Trip passed as
+ * a prop. Has some additional logic (handleEndReached, renderFooter)
+ */
+
 interface Props {
   trips: TripDetails[];
   isLoading: boolean;

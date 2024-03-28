@@ -1,6 +1,6 @@
 import { Platform, StyleSheet } from 'react-native';
 import React, { forwardRef, useMemo } from 'react';
-import { Text, View, BottomSheetView, SafeAreaView } from '@/components/Themed';
+import { Text, View, BottomSheetView } from '@/components/Themed';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';

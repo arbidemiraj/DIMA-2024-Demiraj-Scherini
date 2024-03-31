@@ -6,6 +6,9 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { Iconify } from 'react-native-iconify';
+import { Pressable } from 'react-native';
+import Colors from '@/constants/Colors';
 
 // Makes sure the user is authenticated before accessing protected pages
 const InitialLayout = () => {
@@ -26,9 +29,18 @@ const InitialLayout = () => {
   }, [session, initialized]);
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerLeft: () => (
+          <Pressable onPress={() => router.back()}>
+            <Iconify icon='ion:chevron-back-outline' size={28} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} />
+          </Pressable>
+        ),
+      }}
+    >
       <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
       <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+      <Stack.Screen name='(trip)/[id]' options={{ headerTransparent: true, headerTitle: '' }} />
     </Stack>
   );
 };

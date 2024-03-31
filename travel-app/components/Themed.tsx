@@ -6,7 +6,6 @@
 import { Text as DefaultText, View as DefaultView } from 'react-native';
 import { SafeAreaView as DefaultSafeAreaView, SafeAreaViewProps as DefaultSafeAreaProps } from 'react-native-safe-area-context';
 import { BottomSheetViewProps as DefaultBottomSheetProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetView/types';
-import { BottomSheetModalProps as DefaultBottomSheetModalProps } from '@gorhom/bottom-sheet';
 import { BottomSheetView as DefaultBottomSheetView, BottomSheetModal as DefaultBottomSheetModal } from '@gorhom/bottom-sheet';
 import Colors from '@/constants/Colors';
 

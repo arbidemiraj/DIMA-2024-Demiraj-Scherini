@@ -5,6 +5,12 @@ import { TripDetails } from '@/types/types';
 import TripList from '@/components/TripList';
 import GooglePlacesInput from '@/components/GooglePlacesInput';
 import { SafeAreaView, View } from '@/components/Themed';
+import useStore from '@/store/store';
+
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
 
 export default function TabOneScreen() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
@@ -15,13 +21,18 @@ export default function TabOneScreen() {
   // overlay logic
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
 
+  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<number>(0);
+
+  const { categoriesList } = useStore();
+
   const toggleOverlay = () => {
     setShowOverlay(!showOverlay);
   };
 
   useEffect(() => {
     getTrips();
-  }, []);
+  }, [coordinates, categoryFilter]); //added filters dependencies
 
   // When the user reaches the end of the list this function gets called
   const handleEndReached = () => {
@@ -30,15 +41,39 @@ export default function TabOneScreen() {
     }
   };
 
+  // When applying filters it resets all for the reloading
+  const resetPage = () => {
+    setPage(1);
+    setTrips([]);
+    setHasMore(true);
+  }
+
   const getTrips = async () => {
     if (isLoading || !hasMore) return; // if there is no more content stop
     setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('trip')
-        .select(`*, category(*), profile_trip(role, profile(*))`)
-        .range((page - 1) * pageSize, page * pageSize - 1)
-        .order('id');
+    try {    
+      let query = supabase
+      .from('trip')
+      .select(`*, category!inner(*), profile_trip(role, profile(*)), visit!inner(lat, long)`);
+      //!inner to filter on the inner's table attributes
+      
+      //if the user has selected a place it will filter the trips with visits near the selected place
+      //lat: [coo.lat - 1, coo.lat + 1]
+      if (coordinates) {
+          query = query
+          .gte('visit.lat', (coordinates.latitude - 1).toString()) //greater or equal
+          .lte('visit.lat', (coordinates.latitude + 1).toString()) //less or equal
+          .gte('visit.long', (coordinates.longitude - 1).toString())
+          .lte('visit.long', (coordinates.longitude + 1).toString());
+      }
+
+      if(categoriesList.length > 0) {
+        query = query.in('category.name', categoriesList);
+      }
+
+      const { data, error } = await query
+      .range((page - 1) * pageSize, page * pageSize - 1)
+      .order('id');
 
       if (error) throw error;
       if (trips === null) throw error;
@@ -67,7 +102,7 @@ export default function TabOneScreen() {
         setHasMore(false);
       } else {
         setTrips((prevTrips) => [...prevTrips, ...tripDetailsData]); // add newly-retrieved data to trips
-        setPage(page + 1); // increment for pagination
+        setPage((page) => (page + 1)); // increment for pagination
       }
     } catch (err) {
       console.log(err);
@@ -77,10 +112,30 @@ export default function TabOneScreen() {
     }
   };
 
+  //called when a place to search is selected
+  const handlePlaceSelect = (data: any, details: any = null) => {
+    resetPage();
+
+    if (details) {
+      const { lat, lng } = details.geometry.location;
+      setCoordinates({ latitude: lat, longitude: lng });
+    }else{
+      setCoordinates(null); 
+    }
+  };
+
+  //called when apply filters is pressed
+  const handleCategorySelect = () => {
+    resetPage();
+
+    //to make the useEffect hook execute
+    setCategoryFilter(categoryFilter => categoryFilter + 1);
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
-        <GooglePlacesInput toggleOverlay={toggleOverlay} />
+        <GooglePlacesInput toggleOverlay={toggleOverlay} handlePlaceSelect={handlePlaceSelect} handleCategorySelect={handleCategorySelect}/>
       </SafeAreaView>
       <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
       {showOverlay && <View style={styles.overlay} />}

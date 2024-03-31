@@ -209,6 +209,8 @@ export type Database = {
           name: string;
           score: number | null;
           trip_id: number;
+          lat: number;
+          long: number;
         };
         Insert: {
           description?: string | null;

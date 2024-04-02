@@ -15,4 +15,12 @@ export type TripDetails = Trip & {
     role: string;
     profile: Profile;
   }[];
+  visits: {
+    lat: number;
+    long: number;
+    description: string | null;
+    name: string;
+    images: Image[];
+  }[];
+
 };

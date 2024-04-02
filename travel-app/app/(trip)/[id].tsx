@@ -1,10 +1,10 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { SafeAreaView, Text, View } from '@/components/Themed';
-import { View as DefaultView } from 'react-native';
+import { View as DefaultView, GestureResponderEvent } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
-import { TripDetails } from '@/types/types';
+import { TripDetails, Visit } from '@/types/types';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
@@ -13,23 +13,71 @@ import { Iconify } from 'react-native-iconify';
 import { Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView } from 'react-native-gesture-handler';
+import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import {Marker} from 'react-native-maps';
+
+interface MarkerInfo {
+  lat: number;
+  long: number;
+  description: string|null;
+}
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
   const [trip, setTrip] = useState<TripDetails>();
   const [isLoading, setLoading] = useState<boolean>(false);
-
+  const [region, setRegion] = useState<Region>();
+  const [markers, setMarkers] = useState<MarkerInfo[]>([]);
   const router = useRouter();
+  
+  const mapRef = useRef<MapView>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
   useEffect(() => {
     getTrip();
   }, []);
 
+  const handleMapReady = () => {
+    setMapReady(true);
+  };
+
+  const handleMapTouch = () => {
+    if (!mapReady) return; // Ignore touch events until map is ready
+    setScrollEnabled(false); // Disable ScrollView scrolling while interacting with the map
+  };
+
+  const handleMapRelease = () => {
+    setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
+  };
+
+  const calculateRegion = (trip: TripDetails) => {
+      const latitudes = trip?.visits.map(marker => marker.lat);
+      const longitudes = trip?.visits.map(marker => marker.long);
+
+      const minLat = Math.min(...latitudes);
+      const maxLat = Math.max(...latitudes);
+      const minLong = Math.min(...longitudes);
+      const maxLong = Math.max(...longitudes);
+
+      const lat = (maxLat + minLat)/2;
+      const long = (maxLong + minLong)/2;
+      const latDelta = maxLat - minLat + 0.1;
+      const longDelta = maxLong - minLong + 0.1;
+
+      setRegion({
+        latitude: lat,
+        longitude: long,
+        latitudeDelta: latDelta,
+        longitudeDelta: longDelta,
+      });
+  }
+
   const getTrip = async () => {
     if (isLoading) return; // if there is no more content stop
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('trip').select(`*, category(*), profile_trip(role, profile(*))`).eq('id', id).single();
+      const { data, error } = await supabase.from('trip').select(`*, category(*), visit(*, image(*)), profile_trip(role, profile(*))`).eq('id', id).single();
 
       if (error) throw error;
 
@@ -51,9 +99,20 @@ export default function Trip() {
           role: profileTrip.role!,
           profile: profileTrip.profile!,
         })),
+        visits: data.visit.map((visit) => ({
+          lat: visit.lat,
+          long: visit.long,
+          description: visit.description,
+          name: visit.name,
+          images: visit.image,
+        })),
       };
 
+      setMarkers(trip.visits); 
+
       setTrip((prev) => (prev = trip)); // add newly-retrieved data to trips
+      
+      calculateRegion(trip); // Calculate the initial region
     } catch (err) {
       console.log(err);
       alert(err);
@@ -79,7 +138,7 @@ export default function Trip() {
   }
 
   return (
-    <ScrollView style={styles.item} snapToAlignment={'start'}>
+    <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled}>
       {/* modify the back arrow to be always white only in this page*/}
       <Stack.Screen
         options={{
@@ -128,7 +187,27 @@ export default function Trip() {
         <View style={[styles.section, styles.sectionHeader]}>
           <Text style={styles.title}>Itineraty</Text>
         </View>
-        <Text style={{ fontSize: 16 }}>Map will be displayed here Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ipsum dicta nam tempora distinctio ratione, vero doloremque eos ipsam accusantium natus consectetur. Aspernatur excepturi earum nemo, perspiciatis temporibus doloremque sapiente corrupti in numquam minima. Asperiores odio aliquid dolorum molestias porro a esse error accusantium blanditiis pariatur? Natus harum autem eveniet voluptate nemo repudiandae mollitia exercitationem, adipisci temporibus architecto corporis cupiditate saepe, quasi officia nihil ab, rem totam porro maiores atque odio accusantium tenetur. Voluptate facilis nihil deleniti alias eveniet molestias accusamus voluptas aliquam accusantium adipisci, nulla, cupiditate amet velit veniam ad reiciendis repellat vitae error! Non possimus est ea temporibus maiores?</Text>
+        <View style={{ flex: 1, height: 300 }}>
+        <MapView
+          style={{ flex: 1 }}
+          ref={mapRef}
+          region={region}
+          zoomEnabled={true} 
+          scrollEnabled={true}
+          loadingEnabled={true}
+          onMapReady={handleMapReady}
+          onTouchStart={handleMapTouch}
+          onTouchEnd={handleMapRelease}
+        >
+          {markers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={{ latitude: marker.lat, longitude: marker.long }}
+            title={trip?.visits[index].name}
+          />
+          ))}
+        </MapView>
+        </View>
       </View>
     </ScrollView>
   );
@@ -189,4 +268,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20,
   },
+  markerImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Colors.dark.text,
+  }
 });

@@ -54,11 +54,12 @@ export default function TabOneScreen() {
     try {    
       let query = supabase
       .from('trip')
-      .select(`*, category!inner(*), profile_trip(role, profile(*)), visit!inner(lat, long)`);
+      .select(`*, category!inner(*), profile_trip(role, profile(*)), visit!inner(lat, long, description, name, image(*))`);
       //!inner to filter on the inner's table attributes
       
       //if the user has selected a place it will filter the trips with visits near the selected place
-      //lat: [coo.lat - 1, coo.lat + 1]
+      //lat: [coo.lat - 1, coo.lat + 1] 
+      // 1 degree of latitude = 111.321 km
       if (coordinates) {
           query = query
           .gte('visit.lat', (coordinates.latitude - 1).toString()) //greater or equal
@@ -96,6 +97,13 @@ export default function TabOneScreen() {
           role: profileTrip.role!,
           profile: profileTrip.profile!,
         })),
+        visits: trip.visit.map((visit) => ({
+          lat: visit.lat,
+          long: visit.long,
+          description: visit.description,
+          name: visit.name,
+          images: visit.image,
+        }))
       }));
 
       if (data?.length === 0) {

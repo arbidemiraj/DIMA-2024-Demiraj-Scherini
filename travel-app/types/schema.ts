@@ -57,7 +57,7 @@ export type Database = {
       image: {
         Row: {
           id: number;
-          url: string | null;
+          url: string;
           visit_id: number | null;
         };
         Insert: {

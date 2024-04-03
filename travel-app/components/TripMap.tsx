@@ -22,7 +22,6 @@ const TripMap = ({ setScrollEnabled, trip}: Props) => {
     const [markers, setMarkers] = useState<MarkerInfo[]>([]);
     const mapRef = useRef<MapView>(null);
     const [mapReady, setMapReady] = useState(false);
-    const [isFullScreen, setIsFullScreen] = useState(true);
 
     useEffect(() => {
         setMarkers(trip.visits);

@@ -92,7 +92,7 @@ export default function Trip() {
     }
   };
 
-  // gets all the favourites, for now to useful
+  // gets all the favourites, useless now
   const getAllFavourites = async () => {
     try {
       const keys =  ['1', '2', '3', '4', '5', '6', '7', '8', '9'] // All the trip ids

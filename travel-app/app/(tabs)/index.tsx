@@ -46,35 +46,31 @@ export default function TabOneScreen() {
     setPage(1);
     setTrips([]);
     setHasMore(true);
-  }
+  };
 
   const getTrips = async () => {
     if (isLoading || !hasMore) return; // if there is no more content stop
     setLoading(true);
-    try {    
-      let query = supabase
-      .from('trip')
-      .select(`*, category!inner(*), profile_trip(role, profile(*)), visit!inner(lat, long, description, name, image(*))`);
+    try {
+      let query = supabase.from('trip').select(`*, category!inner(*), profile_trip(role, profile(*)), visit!inner(lat, long, description, name, image(*))`);
       //!inner to filter on the inner's table attributes
-      
+
       //if the user has selected a place it will filter the trips with visits near the selected place
-      //lat: [coo.lat - 1, coo.lat + 1] 
+      //lat: [coo.lat - 1, coo.lat + 1]
       // 1 degree of latitude = 111.321 km
       if (coordinates) {
-          query = query
+        query = query
           .gte('visit.lat', (coordinates.latitude - 1).toString()) //greater or equal
           .lte('visit.lat', (coordinates.latitude + 1).toString()) //less or equal
           .gte('visit.long', (coordinates.longitude - 1).toString())
           .lte('visit.long', (coordinates.longitude + 1).toString());
       }
 
-      if(categoriesList.length > 0) {
+      if (categoriesList.length > 0) {
         query = query.in('category.name', categoriesList);
       }
 
-      const { data, error } = await query
-      .range((page - 1) * pageSize, page * pageSize - 1)
-      .order('id');
+      const { data, error } = await query.range((page - 1) * pageSize, page * pageSize - 1).order('id');
 
       if (error) throw error;
       if (trips === null) throw error;
@@ -97,20 +93,13 @@ export default function TabOneScreen() {
           role: profileTrip.role!,
           profile: profileTrip.profile!,
         })),
-        visits: trip.visit.map((visit) => ({
-          lat: visit.lat,
-          long: visit.long,
-          description: visit.description,
-          name: visit.name,
-          images: visit.image,
-        }))
       }));
 
       if (data?.length === 0) {
         setHasMore(false);
       } else {
         setTrips((prevTrips) => [...prevTrips, ...tripDetailsData]); // add newly-retrieved data to trips
-        setPage((page) => (page + 1)); // increment for pagination
+        setPage((page) => page + 1); // increment for pagination
       }
     } catch (err) {
       console.log(err);
@@ -127,8 +116,8 @@ export default function TabOneScreen() {
     if (details) {
       const { lat, lng } = details.geometry.location;
       setCoordinates({ latitude: lat, longitude: lng });
-    }else{
-      setCoordinates(null); 
+    } else {
+      setCoordinates(null);
     }
   };
 
@@ -137,13 +126,13 @@ export default function TabOneScreen() {
     resetPage();
 
     //to make the useEffect hook execute
-    setCategoryFilter(categoryFilter => categoryFilter + 1);
+    setCategoryFilter((categoryFilter) => categoryFilter + 1);
   };
 
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
-        <GooglePlacesInput toggleOverlay={toggleOverlay} handlePlaceSelect={handlePlaceSelect} handleCategorySelect={handleCategorySelect}/>
+        <GooglePlacesInput toggleOverlay={toggleOverlay} handlePlaceSelect={handlePlaceSelect} handleCategorySelect={handleCategorySelect} />
       </SafeAreaView>
       <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
       {showOverlay && <View style={styles.overlay} />}

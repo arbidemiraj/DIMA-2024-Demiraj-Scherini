@@ -4,7 +4,7 @@ import { View as DefaultView } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
-import { TripDetails } from '@/types/types';
+import { TripDetails, VisitDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
@@ -18,19 +18,61 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
+
   const [trip, setTrip] = useState<TripDetails>();
+  const [visits, setVisits] = useState<VisitDetails[]>();
   const [isLoading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const [mapReady, setMapReady] = useState(false);
   const [isFav, setFav] = useState<boolean>(false);
   const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
-  
+
   useEffect(() => {
     getIsFav();
     getTrip();
+    getVisits();
   }, []);
 
+  const handleMapReady = () => {
+    setMapReady(true);
+  };
+
+  const handleMapTouch = () => {
+    if (!mapReady) return; // Ignore touch events until map is ready
+    setScrollEnabled(false); // Disable ScrollView scrolling while interacting with the map
+  };
+
+  const handleMapRelease = () => {
+    setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
+  };
+
+  const getVisits = async () => {
+    try {
+      const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
+      if (error) throw error;
+
+      console.dir(data);
+      const visits: VisitDetails[] = data.map((visit) => ({
+        id: visit.id,
+        description: visit.description,
+        name: visit.name,
+        score: visit.score,
+        lat: visit.lat,
+        long: visit.long,
+        trip_id: visit.trip_id,
+        images: visit.image,
+      }));
+      setVisits((prev) => (prev = visits));
+      //console.log(markerData);
+    } catch (err) {
+      console.log(err);
+      alert(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getTrip = async () => {
-    if (isLoading) return; // if there is no more content stop
     setLoading(true);
     try {
       const { data, error } = await supabase.from('trip').select(`*, category(*), visit(*, image(*)), profile_trip(role, profile(*))`).eq('id', id).single();
@@ -53,27 +95,18 @@ export default function Trip() {
           role: profileTrip.role!,
           profile: profileTrip.profile!,
         })),
-        visits: data.visit.map((visit) => ({
-          lat: visit.lat,
-          long: visit.long,
-          description: visit.description,
-          name: visit.name,
-          images: visit.image,
-        })),
-      }); // add newly-retrieved data to trips
-
+      });
     } catch (err) {
       console.log(err);
       alert(err);
     } finally {
       setLoading(false);
     }
-  }; 
+  };
 
   //called when the favourite button is pressed
   const handleFav = async () => {
     setFav((prev) => !prev);
-
     storeIsFav(!isFav);
   };
 
@@ -84,37 +117,21 @@ export default function Trip() {
 
       if (stringValue !== null) {
         setFav(JSON.parse(stringValue));
-      }else{
+      } else {
         setFav(false);
       }
     } catch (e) {
       // error reading value
+      console.log(e);
     }
   };
 
-  // gets all the favourites, useless now
-  const getAllFavourites = async () => {
-    try {
-      const keys =  ['1', '2', '3', '4', '5', '6', '7', '8', '9'] // All the trip ids
-      const items = await AsyncStorage.multiGet(keys); // Get all items corresponding to the keys
-      // Convert items to an object
-      const itemsObject: { [key: string]: string | null } = {};
-      items.forEach(([key, value]) => {
-        itemsObject[key] = value;
-      });
-      return itemsObject;
-    } catch (error) {
-      console.error('Error getting all items from AsyncStorage:', error);
-      return null;
-    }
-  };
-  
   //saves the new fav value for the current trip
-  const storeIsFav = async (value:boolean) => {
+  const storeIsFav = async (value: boolean) => {
     try {
       await AsyncStorage.setItem(id.toString(), JSON.stringify(value));
     } catch (e) {
-      // saving error
+      console.log(e);
     }
   };
 
@@ -144,14 +161,7 @@ export default function Trip() {
               <Iconify icon='ion:chevron-back-outline' size={28} color={'#FFF'} />
             </Pressable>
           ),
-          headerRight: () => (
-            <Pressable onPress={handleFav}>
-              {isFav 
-              ? <Iconify icon='ph:heart-fill' size={32} color={'#cf2626'} />
-              : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}
-            </Pressable>
-          ),
-  
+          headerRight: () => <Pressable onPress={handleFav}>{isFav ? <Iconify icon='ph:heart-fill' size={32} color={'#FFF'} /> : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}</Pressable>,
         }}
       />
       {/* modify the status bar only in this page*/}
@@ -181,12 +191,16 @@ export default function Trip() {
         </View>
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Activities</Text>
-          <Text style={{ fontSize: 16 }}>Place card will be displayed here</Text>
+          <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
+            {visits?.map((visit, index) => (
+              <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+            ))}
+          </View>
         </View>
-        <View style={[styles.section, styles.sectionHeader]}>
-          <Text style={styles.title}>Itinerary</Text>
+        <View style={styles.section}>
+          <Text style={styles.title}>Itineraty</Text>
         </View>
-        {trip && <TripMap setScrollEnabled={setScrollEnabled} trip={trip} />}
+        <View style={{ flex: 1, height: 250 }}>{visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} />}</View>
       </View>
     </ScrollView>
   );
@@ -206,7 +220,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   sectionHeader: {
-    marginBottom: 20,
+    paddingBottom: 20,
   },
   imageContainer: {
     position: 'relative',
@@ -253,5 +267,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: Colors.dark.text,
-  }
+  },
 });

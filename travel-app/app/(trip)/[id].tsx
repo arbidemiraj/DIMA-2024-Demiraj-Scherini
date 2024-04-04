@@ -1,10 +1,10 @@
-import React, { ReactNode, useEffect, useState, useRef } from 'react';
-import { SafeAreaView, Text, View } from '@/components/Themed';
-import { View as DefaultView, GestureResponderEvent } from 'react-native';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { Text, View } from '@/components/Themed';
+import { View as DefaultView } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
-import { TripDetails, Visit } from '@/types/types';
+import { TripDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
@@ -13,65 +13,21 @@ import { Iconify } from 'react-native-iconify';
 import { Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView } from 'react-native-gesture-handler';
-import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import {Marker} from 'react-native-maps';
-
-interface MarkerInfo {
-  lat: number;
-  long: number;
-  description: string|null;
-}
+import TripMap from '@/components/TripMap';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
   const [trip, setTrip] = useState<TripDetails>();
   const [isLoading, setLoading] = useState<boolean>(false);
-  const [region, setRegion] = useState<Region>();
-  const [markers, setMarkers] = useState<MarkerInfo[]>([]);
   const router = useRouter();
+  const [isFav, setFav] = useState<boolean>(false);
+  const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
   
-  const mapRef = useRef<MapView>(null);
-  const [mapReady, setMapReady] = useState(false);
-  const [scrollEnabled, setScrollEnabled] = useState(true);
-
   useEffect(() => {
+    getIsFav();
     getTrip();
   }, []);
-
-  const handleMapReady = () => {
-    setMapReady(true);
-  };
-
-  const handleMapTouch = () => {
-    if (!mapReady) return; // Ignore touch events until map is ready
-    setScrollEnabled(false); // Disable ScrollView scrolling while interacting with the map
-  };
-
-  const handleMapRelease = () => {
-    setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
-  };
-
-  const calculateRegion = (trip: TripDetails) => {
-      const latitudes = trip?.visits.map(marker => marker.lat);
-      const longitudes = trip?.visits.map(marker => marker.long);
-
-      const minLat = Math.min(...latitudes);
-      const maxLat = Math.max(...latitudes);
-      const minLong = Math.min(...longitudes);
-      const maxLong = Math.max(...longitudes);
-
-      const lat = (maxLat + minLat)/2;
-      const long = (maxLong + minLong)/2;
-      const latDelta = maxLat - minLat + 0.1;
-      const longDelta = maxLong - minLong + 0.1;
-
-      setRegion({
-        latitude: lat,
-        longitude: long,
-        latitudeDelta: latDelta,
-        longitudeDelta: longDelta,
-      });
-  }
 
   const getTrip = async () => {
     if (isLoading) return; // if there is no more content stop
@@ -82,9 +38,7 @@ export default function Trip() {
       if (error) throw error;
 
       //console.dir(data);
-
-      // map response data to TripData type
-      const trip: TripDetails = {
+      setTrip({
         id: data.id,
         cover_url: data.cover_url,
         description: data.description,
@@ -106,18 +60,61 @@ export default function Trip() {
           name: visit.name,
           images: visit.image,
         })),
-      };
+      }); // add newly-retrieved data to trips
 
-      setMarkers(trip.visits); 
-
-      setTrip((prev) => (prev = trip)); // add newly-retrieved data to trips
-      
-      calculateRegion(trip); // Calculate the initial region
     } catch (err) {
       console.log(err);
       alert(err);
     } finally {
       setLoading(false);
+    }
+  }; 
+
+  //called when the favourite button is pressed
+  const handleFav = async () => {
+    setFav((prev) => !prev);
+
+    storeIsFav(!isFav);
+  };
+
+  //gets if the trip is in the user favourites or not
+  const getIsFav = async () => {
+    try {
+      const stringValue = await AsyncStorage.getItem(id.toString());
+
+      if (stringValue !== null) {
+        setFav(JSON.parse(stringValue));
+      }else{
+        setFav(false);
+      }
+    } catch (e) {
+      // error reading value
+    }
+  };
+
+  // gets all the favourites, useless now
+  const getAllFavourites = async () => {
+    try {
+      const keys =  ['1', '2', '3', '4', '5', '6', '7', '8', '9'] // All the trip ids
+      const items = await AsyncStorage.multiGet(keys); // Get all items corresponding to the keys
+      // Convert items to an object
+      const itemsObject: { [key: string]: string | null } = {};
+      items.forEach(([key, value]) => {
+        itemsObject[key] = value;
+      });
+      return itemsObject;
+    } catch (error) {
+      console.error('Error getting all items from AsyncStorage:', error);
+      return null;
+    }
+  };
+  
+  //saves the new fav value for the current trip
+  const storeIsFav = async (value:boolean) => {
+    try {
+      await AsyncStorage.setItem(id.toString(), JSON.stringify(value));
+    } catch (e) {
+      // saving error
     }
   };
 
@@ -148,17 +145,19 @@ export default function Trip() {
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable onPress={() => console.log('added to favoutites')}>
-              <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />
+            <Pressable onPress={handleFav}>
+              {isFav 
+              ? <Iconify icon='ph:heart-fill' size={32} color={'#cf2626'} />
+              : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}
             </Pressable>
           ),
+  
         }}
       />
       {/* modify the status bar only in this page*/}
       <StatusBar style='light' animated={true} />
       <DefaultView style={styles.imageContainer}>
         <Image source={{ uri: trip?.cover_url }} style={styles.image} />
-
         <DefaultView style={styles.overlay}>
           <DefaultView style={{ padding: 20, marginBottom: 10 }}>
             <Text style={{ color: Colors.dark.text, fontWeight: 'bold', fontSize: 28 }}>{trip?.name}</Text>
@@ -185,29 +184,9 @@ export default function Trip() {
           <Text style={{ fontSize: 16 }}>Place card will be displayed here</Text>
         </View>
         <View style={[styles.section, styles.sectionHeader]}>
-          <Text style={styles.title}>Itineraty</Text>
+          <Text style={styles.title}>Itinerary</Text>
         </View>
-        <View style={{ flex: 1, height: 300 }}>
-        <MapView
-          style={{ flex: 1 }}
-          ref={mapRef}
-          region={region}
-          zoomEnabled={true} 
-          scrollEnabled={true}
-          loadingEnabled={true}
-          onMapReady={handleMapReady}
-          onTouchStart={handleMapTouch}
-          onTouchEnd={handleMapRelease}
-        >
-          {markers.map((marker, index) => (
-          <Marker
-            key={index}
-            coordinate={{ latitude: marker.lat, longitude: marker.long }}
-            title={trip?.visits[index].name}
-          />
-          ))}
-        </MapView>
-        </View>
+        {trip && <TripMap setScrollEnabled={setScrollEnabled} trip={trip} />}
       </View>
     </ScrollView>
   );

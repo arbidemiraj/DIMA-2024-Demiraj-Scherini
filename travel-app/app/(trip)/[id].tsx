@@ -2,9 +2,9 @@ import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { SafeAreaView, Text, View } from '@/components/Themed';
 import { View as DefaultView, GestureResponderEvent } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
-import { TripDetails, Visit } from '@/types/types';
+import { TripDetails, Visit, VisitDetails, Image as ImageType } from '@/types/types';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
@@ -12,30 +12,35 @@ import { Stack, useRouter } from 'expo-router';
 import { Iconify } from 'react-native-iconify';
 import { Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView } from 'react-native-gesture-handler';
+import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import {Marker} from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 
 interface MarkerInfo {
   lat: number;
   long: number;
-  description: string|null;
+  description: string | null;
+  name: string;
 }
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
+
   const [trip, setTrip] = useState<TripDetails>();
+  const [visits, setVisits] = useState<VisitDetails[]>();
+
   const [isLoading, setLoading] = useState<boolean>(false);
   const [region, setRegion] = useState<Region>();
   const [markers, setMarkers] = useState<MarkerInfo[]>([]);
   const router = useRouter();
-  
+
   const mapRef = useRef<MapView>(null);
   const [mapReady, setMapReady] = useState(false);
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
   useEffect(() => {
     getTrip();
+    getVisits();
   }, []);
 
   const handleMapReady = () => {
@@ -51,30 +56,66 @@ export default function Trip() {
     setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
   };
 
-  const calculateRegion = (trip: TripDetails) => {
-      const latitudes = trip?.visits.map(marker => marker.lat);
-      const longitudes = trip?.visits.map(marker => marker.long);
+  const calculateRegion = (visits: VisitDetails[]) => {
+    const latitudes = visits.map((marker) => marker.lat);
+    const longitudes = visits.map((marker) => marker.long);
 
-      const minLat = Math.min(...latitudes);
-      const maxLat = Math.max(...latitudes);
-      const minLong = Math.min(...longitudes);
-      const maxLong = Math.max(...longitudes);
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const minLong = Math.min(...longitudes);
+    const maxLong = Math.max(...longitudes);
 
-      const lat = (maxLat + minLat)/2;
-      const long = (maxLong + minLong)/2;
-      const latDelta = maxLat - minLat + 0.1;
-      const longDelta = maxLong - minLong + 0.1;
+    const lat = (maxLat + minLat) / 2;
+    const long = (maxLong + minLong) / 2;
+    const latDelta = maxLat - minLat + 0.1;
+    const longDelta = maxLong - minLong + 0.1;
 
-      setRegion({
-        latitude: lat,
-        longitude: long,
-        latitudeDelta: latDelta,
-        longitudeDelta: longDelta,
-      });
-  }
+    setRegion({
+      latitude: lat,
+      longitude: long,
+      latitudeDelta: latDelta,
+      longitudeDelta: longDelta,
+    });
+  };
+
+  const getVisits = async () => {
+    try {
+      const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
+      if (error) throw error;
+
+      console.dir(data);
+      const visits: VisitDetails[] = data.map((visit) => ({
+        id: visit.id,
+        description: visit.description,
+        name: visit.name,
+        score: visit.score,
+        lat: visit.lat,
+        long: visit.long,
+        trip_id: visit.trip_id,
+        images: visit.image,
+      }));
+
+      calculateRegion(visits); // Calculate the initial region
+      setVisits((prev) => (prev = visits));
+
+      const markerData: MarkerInfo[] = visits.map((visit) => ({
+        lat: visit.lat,
+        long: visit.long,
+        description: visit.description ?? null, // Use nullish coalescing operator to handle null values
+        name: visit.name,
+      }));
+
+      setMarkers((marker) => (marker = markerData));
+      //console.log(markerData);
+    } catch (err) {
+      console.log(err);
+      alert(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getTrip = async () => {
-    if (isLoading) return; // if there is no more content stop
     setLoading(true);
     try {
       const { data, error } = await supabase.from('trip').select(`*, category(*), visit(*, image(*)), profile_trip(role, profile(*))`).eq('id', id).single();
@@ -99,20 +140,9 @@ export default function Trip() {
           role: profileTrip.role!,
           profile: profileTrip.profile!,
         })),
-        visits: data.visit.map((visit) => ({
-          lat: visit.lat,
-          long: visit.long,
-          description: visit.description,
-          name: visit.name,
-          images: visit.image,
-        })),
       };
 
-      setMarkers(trip.visits); 
-
       setTrip((prev) => (prev = trip)); // add newly-retrieved data to trips
-      
-      calculateRegion(trip); // Calculate the initial region
     } catch (err) {
       console.log(err);
       alert(err);
@@ -182,31 +212,21 @@ export default function Trip() {
         </View>
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Activities</Text>
-          <Text style={{ fontSize: 16 }}>Place card will be displayed here</Text>
+          <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
+            {visits?.map((visit, index) => (
+              <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+            ))}
+          </View>
         </View>
-        <View style={[styles.section, styles.sectionHeader]}>
+        <View style={styles.section}>
           <Text style={styles.title}>Itineraty</Text>
         </View>
-        <View style={{ flex: 1, height: 300 }}>
-        <MapView
-          style={{ flex: 1 }}
-          ref={mapRef}
-          region={region}
-          zoomEnabled={true} 
-          scrollEnabled={true}
-          loadingEnabled={true}
-          onMapReady={handleMapReady}
-          onTouchStart={handleMapTouch}
-          onTouchEnd={handleMapRelease}
-        >
-          {markers.map((marker, index) => (
-          <Marker
-            key={index}
-            coordinate={{ latitude: marker.lat, longitude: marker.long }}
-            title={trip?.visits[index].name}
-          />
-          ))}
-        </MapView>
+        <View style={{ flex: 1, height: 250 }}>
+          <MapView style={{ flex: 1, borderRadius: 10 }} ref={mapRef} region={region} zoomEnabled={true} scrollEnabled={true} loadingEnabled={true} onMapReady={handleMapReady} onTouchStart={handleMapTouch} onTouchEnd={handleMapRelease}>
+            {markers.map((marker, index) => (
+              <Marker key={index} coordinate={{ latitude: marker.lat, longitude: marker.long }} title={marker.name} />
+            ))}
+          </MapView>
         </View>
       </View>
     </ScrollView>
@@ -227,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   sectionHeader: {
-    marginBottom: 20,
+    paddingBottom: 20,
   },
   imageContainer: {
     position: 'relative',
@@ -274,5 +294,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: Colors.dark.text,
-  }
+  },
 });

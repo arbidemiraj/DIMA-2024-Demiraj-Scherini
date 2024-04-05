@@ -68,10 +68,10 @@ const TripMap = ({ setScrollEnabled, visits, handleFullScreen, isMapFullScreen }
       </MapView>
       {isMapFullScreen ? 
       (<Pressable onPress={handleFullScreen}>
-        <Iconify style={styles.mapIcon} icon='ion:chevron-back-outline' size={22} color={'#000'} />
+        <Iconify style={styles.mapIcon} icon='gg:close' size={24} color={'#000'} />
       </Pressable>)
       :(<Pressable onPress={handleFullScreen}>
-        <Iconify style={styles.mapIcon} icon='gg:expand' size={22} color={'#000'} />
+        <Iconify style={styles.mapIcon} icon='gg:expand' size={24} color={'#000'} />
       </Pressable>)}
     </View>
   );

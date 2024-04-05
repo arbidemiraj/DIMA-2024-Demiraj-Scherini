@@ -14,6 +14,7 @@ import { Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
+import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Trip() {
@@ -148,7 +149,6 @@ export default function Trip() {
       {/* modify the back arrow to be always white only in this page*/}
       <Stack.Screen
         options={{
-          headerShown: !isMapFullScreen, //if the map is full screen the header is not shown
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
               <Iconify icon='ion:chevron-back-outline' size={28} color={'#FFF'} />
@@ -159,7 +159,7 @@ export default function Trip() {
       />
       {/* modify the status bar only in this page*/}
       <StatusBar style='light' animated={true} />
-      {(!isMapFullScreen) && (<DefaultView style={styles.imageContainer}>
+      <DefaultView style={styles.imageContainer}>
         <Image source={{ uri: trip?.cover_url }} style={styles.image} />
         <DefaultView style={styles.overlay}>
           <DefaultView style={{ padding: 20, marginBottom: 10 }}>
@@ -170,8 +170,8 @@ export default function Trip() {
             </Text>
           </DefaultView>
         </DefaultView>
-      </DefaultView>)}
-      <SafeAreaView style={(isMapFullScreen && styles.fullScreenContainer) || styles.container}>
+      </DefaultView>
+      <View style={styles.container}>
        <View style={styles.section}>
           <View style={[styles.sectionHeader, { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
             <Text style={styles.title}>Description</Text>
@@ -193,12 +193,23 @@ export default function Trip() {
         <View style={styles.section}>
           <Text style={styles.title}>Itinerary</Text>
         </View>
-        {isMapFullScreen ? (
-        visits && <SafeAreaView style={styles.fullScreenBox}><TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/></SafeAreaView>
+        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/>}
+      
+      <Modal isVisible={isMapFullScreen}>
+      {visits ? (
+        <TripMap
+          setScrollEnabled={setScrollEnabled}
+          visits={visits}
+          handleFullScreen={handleFullScreen}
+          isMapFullScreen={isMapFullScreen}
+        />
       ) : (
-        visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/>
+        <View> {/* TODO: placeholder element */}
+          <Text>Loading...</Text>
+        </View>
       )}
-      </SafeAreaView>
+      </Modal>
+      </View>
       
     </ScrollView>
   );
@@ -243,10 +254,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 40,
   },
-  fullScreenContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 70, //does it work for all devices?
-  },
   section: {
     marginVertical: 20,
   },
@@ -262,8 +269,5 @@ const styles = StyleSheet.create({
   score: {
     fontWeight: 'bold',
     fontSize: 20,
-  },
-  fullScreenBox: {
-    ...StyleSheet.absoluteFillObject,
   },
 });

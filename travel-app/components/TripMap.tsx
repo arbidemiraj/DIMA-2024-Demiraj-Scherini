@@ -9,16 +9,11 @@ import { Iconify } from 'react-native-iconify';
 interface Props {
   setScrollEnabled: (enable: boolean) => void;
   visits: VisitDetails[];
+  isMapFullScreen: boolean;
+  handleFullScreen: () => void;
 }
 
-interface MarkerInfo {
-  lat: number;
-  long: number;
-  description: string | null;
-  name: string;
-}
-
-const TripMap = ({ setScrollEnabled, visits }: Props) => {
+const TripMap = ({ setScrollEnabled, visits, handleFullScreen, isMapFullScreen }: Props) => {
   const [region, setRegion] = useState<Region>();
   const [markers, setMarkers] = useState<VisitDetails[]>([]);
   const mapRef = useRef<MapView>(null);
@@ -71,16 +66,20 @@ const TripMap = ({ setScrollEnabled, visits }: Props) => {
           <Marker key={index} coordinate={{ latitude: marker.lat, longitude: marker.long }} title={marker.name}></Marker>
         ))}
       </MapView>
-      <Pressable onPress={() => console.log('set map full screen')}>
-        <Iconify style={styles.expandIcon} icon='gg:expand' size={22} color={'#000'} />
-      </Pressable>
+      {isMapFullScreen ? 
+      (<Pressable onPress={handleFullScreen}>
+        <Iconify style={styles.mapIcon} icon='ion:chevron-back-outline' size={22} color={'#000'} />
+      </Pressable>)
+      :(<Pressable onPress={handleFullScreen}>
+        <Iconify style={styles.mapIcon} icon='gg:expand' size={22} color={'#000'} />
+      </Pressable>)}
     </View>
   );
 };
 
 //add dark mode also to map?
 const styles = StyleSheet.create({
-  expandIcon: {
+  mapIcon: {
     position: 'absolute',
     right: 10,
     top: 10,
@@ -111,7 +110,6 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    width: '100%',
     ...StyleSheet.absoluteFillObject,
   },
 });

@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Text, View } from '@/components/Themed';
+import { SafeAreaView, Text, View } from '@/components/Themed';
 import { View as DefaultView } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
@@ -23,29 +23,16 @@ export default function Trip() {
   const [visits, setVisits] = useState<VisitDetails[]>();
   const [isLoading, setLoading] = useState<boolean>(false);
   const router = useRouter();
-  const [mapReady, setMapReady] = useState(false);
   const [isFav, setFav] = useState<boolean>(false);
   const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
+  const [isMapFullScreen, setMapFullScreen] = useState<boolean>(false);
 
   useEffect(() => {
     getIsFav();
     getTrip();
     getVisits();
   }, []);
-
-  const handleMapReady = () => {
-    setMapReady(true);
-  };
-
-  const handleMapTouch = () => {
-    if (!mapReady) return; // Ignore touch events until map is ready
-    setScrollEnabled(false); // Disable ScrollView scrolling while interacting with the map
-  };
-
-  const handleMapRelease = () => {
-    setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
-  };
-
+  
   const getVisits = async () => {
     try {
       const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
@@ -110,6 +97,11 @@ export default function Trip() {
     storeIsFav(!isFav);
   };
 
+  //handle full screen button of the map
+  const handleFullScreen = () => {
+    setMapFullScreen(!isMapFullScreen);
+  }
+
   //gets if the trip is in the user favourites or not
   const getIsFav = async () => {
     try {
@@ -156,6 +148,7 @@ export default function Trip() {
       {/* modify the back arrow to be always white only in this page*/}
       <Stack.Screen
         options={{
+          headerShown: !isMapFullScreen, //if the map is full screen the header is not shown
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
               <Iconify icon='ion:chevron-back-outline' size={28} color={'#FFF'} />
@@ -166,7 +159,7 @@ export default function Trip() {
       />
       {/* modify the status bar only in this page*/}
       <StatusBar style='light' animated={true} />
-      <DefaultView style={styles.imageContainer}>
+      {(!isMapFullScreen) && (<DefaultView style={styles.imageContainer}>
         <Image source={{ uri: trip?.cover_url }} style={styles.image} />
         <DefaultView style={styles.overlay}>
           <DefaultView style={{ padding: 20, marginBottom: 10 }}>
@@ -177,9 +170,9 @@ export default function Trip() {
             </Text>
           </DefaultView>
         </DefaultView>
-      </DefaultView>
-      <View style={styles.container}>
-        <View style={styles.section}>
+      </DefaultView>)}
+      <SafeAreaView style={(isMapFullScreen && styles.fullScreenContainer) || styles.container}>
+       <View style={styles.section}>
           <View style={[styles.sectionHeader, { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
             <Text style={styles.title}>Description</Text>
             <View style={styles.scoreContainer}>
@@ -198,10 +191,15 @@ export default function Trip() {
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.title}>Itineraty</Text>
+          <Text style={styles.title}>Itinerary</Text>
         </View>
-        <View style={{ flex: 1, height: 250 }}>{visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} />}</View>
-      </View>
+        {isMapFullScreen ? (
+        visits && <SafeAreaView style={styles.fullScreenBox}><TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/></SafeAreaView>
+      ) : (
+        visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/>
+      )}
+      </SafeAreaView>
+      
     </ScrollView>
   );
 }
@@ -245,6 +243,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 40,
   },
+  fullScreenContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 70, //does it work for all devices?
+  },
   section: {
     marginVertical: 20,
   },
@@ -261,11 +263,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20,
   },
-  markerImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.dark.text,
+  fullScreenBox: {
+    ...StyleSheet.absoluteFillObject,
   },
 });

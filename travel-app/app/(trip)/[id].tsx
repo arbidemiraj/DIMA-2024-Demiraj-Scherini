@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Text, View } from '@/components/Themed';
+import { SafeAreaView, Text, View } from '@/components/Themed';
 import { View as DefaultView } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
@@ -14,6 +14,7 @@ import { Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
+import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Trip() {
@@ -23,29 +24,16 @@ export default function Trip() {
   const [visits, setVisits] = useState<VisitDetails[]>();
   const [isLoading, setLoading] = useState<boolean>(false);
   const router = useRouter();
-  const [mapReady, setMapReady] = useState(false);
   const [isFav, setFav] = useState<boolean>(false);
   const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
+  const [isMapFullScreen, setMapFullScreen] = useState<boolean>(false);
 
   useEffect(() => {
     getIsFav();
     getTrip();
     getVisits();
   }, []);
-
-  const handleMapReady = () => {
-    setMapReady(true);
-  };
-
-  const handleMapTouch = () => {
-    if (!mapReady) return; // Ignore touch events until map is ready
-    setScrollEnabled(false); // Disable ScrollView scrolling while interacting with the map
-  };
-
-  const handleMapRelease = () => {
-    setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
-  };
-
+  
   const getVisits = async () => {
     try {
       const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
@@ -109,6 +97,11 @@ export default function Trip() {
     setFav((prev) => !prev);
     storeIsFav(!isFav);
   };
+
+  //handle full screen button of the map
+  const handleFullScreen = () => {
+    setMapFullScreen(!isMapFullScreen);
+  }
 
   //gets if the trip is in the user favourites or not
   const getIsFav = async () => {
@@ -179,7 +172,7 @@ export default function Trip() {
         </DefaultView>
       </DefaultView>
       <View style={styles.container}>
-        <View style={styles.section}>
+       <View style={styles.section}>
           <View style={[styles.sectionHeader, { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
             <Text style={styles.title}>Description</Text>
             <View style={styles.scoreContainer}>
@@ -198,10 +191,26 @@ export default function Trip() {
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.title}>Itineraty</Text>
+          <Text style={styles.title}>Itinerary</Text>
         </View>
-        <View style={{ flex: 1, height: 250 }}>{visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} />}</View>
+        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/>}
+      
+      <Modal isVisible={isMapFullScreen}>
+      {visits ? (
+        <TripMap
+          setScrollEnabled={setScrollEnabled}
+          visits={visits}
+          handleFullScreen={handleFullScreen}
+          isMapFullScreen={isMapFullScreen}
+        />
+      ) : (
+        <View> {/* TODO: placeholder element */}
+          <Text>Loading...</Text>
+        </View>
+      )}
+      </Modal>
       </View>
+      
     </ScrollView>
   );
 }
@@ -260,12 +269,5 @@ const styles = StyleSheet.create({
   score: {
     fontWeight: 'bold',
     fontSize: 20,
-  },
-  markerImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.dark.text,
   },
 });

@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { SafeAreaView, Text, View } from '@/components/Themed';
-import { View as DefaultView } from 'react-native';
+import { View as DefaultView, Modal } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
@@ -14,8 +14,9 @@ import { Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
-import Modal from 'react-native-modal';
+import * as M from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
@@ -27,13 +28,14 @@ export default function Trip() {
   const [isFav, setFav] = useState<boolean>(false);
   const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
   const [isMapFullScreen, setMapFullScreen] = useState<boolean>(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     getIsFav();
     getTrip();
     getVisits();
   }, []);
-  
+
   const getVisits = async () => {
     try {
       const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
@@ -101,7 +103,7 @@ export default function Trip() {
   //handle full screen button of the map
   const handleFullScreen = () => {
     setMapFullScreen(!isMapFullScreen);
-  }
+  };
 
   //gets if the trip is in the user favourites or not
   const getIsFav = async () => {
@@ -136,29 +138,16 @@ export default function Trip() {
     );
   }
 
-  function FavoutiteButton(): ReactNode {
-    return (
-      <Pressable onPress={() => console.log('added to favoutites')}>
-        <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />
-      </Pressable>
-    );
+  function FavouriteButton(): ReactNode {
+    return <Pressable onPress={handleFav}>{isFav ? <Iconify icon='ph:heart-fill' size={32} color={'#FFF'} /> : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}</Pressable>;
   }
 
   return (
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled}>
       {/* modify the back arrow to be always white only in this page*/}
-      <Stack.Screen
-        options={{
-          headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
-              <Iconify icon='ion:chevron-back-outline' size={28} color={'#FFF'} />
-            </Pressable>
-          ),
-          headerRight: () => <Pressable onPress={handleFav}>{isFav ? <Iconify icon='ph:heart-fill' size={32} color={'#FFF'} /> : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}</Pressable>,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       {/* modify the status bar only in this page*/}
-      <StatusBar style='light' animated={true} />
+      <StatusBar animated={false} style='light' />
       <DefaultView style={styles.imageContainer}>
         <Image source={{ uri: trip?.cover_url }} style={styles.image} />
         <DefaultView style={styles.overlay}>
@@ -169,10 +158,14 @@ export default function Trip() {
               From {useDateFormatter(trip?.start_date!)} to {useDateFormatter(trip?.end_date!)}
             </Text>
           </DefaultView>
+          <View style={[styles.buttonsContainer, { marginTop: insets.top - 17 }]}>
+            <BackButton />
+            <FavouriteButton />
+          </View>
         </DefaultView>
       </DefaultView>
       <View style={styles.container}>
-       <View style={styles.section}>
+        <View style={styles.section}>
           <View style={[styles.sectionHeader, { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
             <Text style={styles.title}>Description</Text>
             <View style={styles.scoreContainer}>
@@ -193,24 +186,11 @@ export default function Trip() {
         <View style={styles.section}>
           <Text style={styles.title}>Itinerary</Text>
         </View>
-        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/>}
-      
-      <Modal isVisible={isMapFullScreen}>
-      {visits ? (
-        <TripMap
-          setScrollEnabled={setScrollEnabled}
-          visits={visits}
-          handleFullScreen={handleFullScreen}
-          isMapFullScreen={isMapFullScreen}
-        />
-      ) : (
-        <View> {/* TODO: placeholder element */}
-          <Text>Loading...</Text>
-        </View>
-      )}
-      </Modal>
+        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
+        <Modal visible={isMapFullScreen} statusBarTranslucent={true}>
+          {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
+        </Modal>
       </View>
-      
     </ScrollView>
   );
 }
@@ -269,5 +249,15 @@ const styles = StyleSheet.create({
   score: {
     fontWeight: 'bold',
     fontSize: 20,
+  },
+  buttonsContainer: {
+    position: 'absolute',
+    top: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    zIndex: 1,
+    backgroundColor: 'transparent',
   },
 });

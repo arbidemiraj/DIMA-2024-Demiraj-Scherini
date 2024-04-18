@@ -6,6 +6,14 @@ import { Marker } from 'react-native-maps';
 import { Pressable, StyleSheet } from 'react-native';
 import { Iconify } from 'react-native-iconify';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+/**
+ * TripMap: component that displays the map of a Trip,
+ * recieves the Visits made by the users and display
+ * the markers accordingly.
+ * setScrollEnabled : Handles the locking of parent scrollView
+ * handleFullScreen : Handles when the map is expanded to fullscreen
+ */
 interface Props {
   setScrollEnabled: (enable: boolean) => void;
   visits: VisitDetails[];
@@ -39,6 +47,7 @@ const TripMap = ({ setScrollEnabled, visits, handleFullScreen, isMapFullScreen }
     setScrollEnabled(true); // Re-enable ScrollView scrolling when interaction with the map ends
   };
 
+  // sets the starting region when the map is loaded
   const calculateRegion = (visits: VisitDetails[]) => {
     const latitudes = visits.map((marker) => marker.lat);
     const longitudes = visits.map((marker) => marker.long);
@@ -85,7 +94,7 @@ const TripMap = ({ setScrollEnabled, visits, handleFullScreen, isMapFullScreen }
   );
 };
 
-//add dark mode also to map?
+//add dark mode also to map? No because it is native!
 const styles = StyleSheet.create({
   mapIconContainer: {
     position: 'absolute',

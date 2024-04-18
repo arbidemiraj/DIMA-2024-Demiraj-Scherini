@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { SafeAreaView, Text, View } from '@/components/Themed';
-import { View as DefaultView } from 'react-native';
+import { Text, View } from '@/components/Themed';
+import { View as DefaultView, Modal, Platform } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
@@ -11,11 +11,11 @@ import { useColorScheme } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Iconify } from 'react-native-iconify';
 import { Pressable } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar, StatusBarStyle } from 'expo-status-bar';
 import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
-import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
@@ -27,18 +27,44 @@ export default function Trip() {
   const [isFav, setFav] = useState<boolean>(false);
   const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
   const [isMapFullScreen, setMapFullScreen] = useState<boolean>(false);
+  const [hasScrolled, setHasScrolled] = useState<boolean>(false);
+
+  const colorScheme = useColorScheme();
+
+  // Returns if the user has scrolled past the cover image
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    if (offsetY > 350) setHasScrolled(true);
+    else setHasScrolled(false);
+  };
+
+  // Returns the insets for applying safeArea paddings
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     getIsFav();
     getTrip();
     getVisits();
   }, []);
-  
+
+  /**
+   * Uncomment for scrolling problems with map
+   * testing, combine it with console.log in handleRelease
+   * and handleMapTouch in TripMap.tsx to understand when it locks
+   */
+
+  /*   useEffect(() => {
+    console.log('can scroll: ', scrollEnabled);
+  }, [scrollEnabled]);
+ */
+
+  // Get the visits (activities) done during the trip
   const getVisits = async () => {
     try {
       const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
       if (error) throw error;
 
+      // map query data result to VisitDetails[]
       console.dir(data);
       const visits: VisitDetails[] = data.map((visit) => ({
         id: visit.id,
@@ -51,7 +77,6 @@ export default function Trip() {
         images: visit.image,
       }));
       setVisits((prev) => (prev = visits));
-      //console.log(markerData);
     } catch (err) {
       console.log(err);
       alert(err);
@@ -60,6 +85,7 @@ export default function Trip() {
     }
   };
 
+  // Get data of the trip
   const getTrip = async () => {
     setLoading(true);
     try {
@@ -67,7 +93,7 @@ export default function Trip() {
 
       if (error) throw error;
 
-      //console.dir(data);
+      // map query data to TripDetails
       setTrip({
         id: data.id,
         cover_url: data.cover_url,
@@ -101,7 +127,7 @@ export default function Trip() {
   //handle full screen button of the map
   const handleFullScreen = () => {
     setMapFullScreen(!isMapFullScreen);
-  }
+  };
 
   //gets if the trip is in the user favourites or not
   const getIsFav = async () => {
@@ -128,6 +154,10 @@ export default function Trip() {
     }
   };
 
+  /**
+   * The following components are interactive buttons
+   * displayed over the cover image of the Trip
+   */
   function BackButton(): ReactNode {
     return (
       <Pressable onPress={() => router.back()}>
@@ -136,29 +166,28 @@ export default function Trip() {
     );
   }
 
-  function FavoutiteButton(): ReactNode {
-    return (
-      <Pressable onPress={() => console.log('added to favoutites')}>
-        <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />
-      </Pressable>
-    );
+  function FavouriteButton(): ReactNode {
+    return <Pressable onPress={handleFav}>{isFav ? <Iconify icon='ph:heart-fill' size={32} color={'#FFF'} /> : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}</Pressable>;
   }
 
+  // dynamically apply the statusBar style to the statusBar based on OS, theme and scrolling
+  const styleStatusBar = (): StatusBarStyle => {
+    let style: StatusBarStyle = 'auto';
+    if (Platform.OS === 'android') style = 'light';
+    else if (colorScheme === 'dark' && (hasScrolled || isMapFullScreen)) style = 'light';
+    else if (colorScheme === 'dark' && !(hasScrolled || isMapFullScreen)) style = 'light';
+    else if (colorScheme === 'light' && (hasScrolled || isMapFullScreen)) style = 'dark';
+    else style = 'light';
+    return style;
+  };
+
   return (
-    <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled}>
-      {/* modify the back arrow to be always white only in this page*/}
-      <Stack.Screen
-        options={{
-          headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
-              <Iconify icon='ion:chevron-back-outline' size={28} color={'#FFF'} />
-            </Pressable>
-          ),
-          headerRight: () => <Pressable onPress={handleFav}>{isFav ? <Iconify icon='ph:heart-fill' size={32} color={'#FFF'} /> : <Iconify icon='ph:heart-duotone' size={32} color={'#FFF'} />}</Pressable>,
-        }}
-      />
+    <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled} onScroll={handleScroll} scrollEventThrottle={1}>
+      {/* modify the back arrow to be always white only in this page, create a custom function that compute the correct color*/}
+      <StatusBar animated={false} style={styleStatusBar()} backgroundColor='rgba(0,0,0,0.3)' />
+      {Platform.OS === 'ios' && <Stack.Screen options={{ headerShown: hasScrolled, headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background }, headerTitle: trip?.name!, headerLeft: () => <></>, headerTitleAlign: 'center' }} />}
+      {Platform.OS === 'android' && <Stack.Screen options={{ headerShown: false }} />}
       {/* modify the status bar only in this page*/}
-      <StatusBar style='light' animated={true} />
       <DefaultView style={styles.imageContainer}>
         <Image source={{ uri: trip?.cover_url }} style={styles.image} />
         <DefaultView style={styles.overlay}>
@@ -169,10 +198,14 @@ export default function Trip() {
               From {useDateFormatter(trip?.start_date!)} to {useDateFormatter(trip?.end_date!)}
             </Text>
           </DefaultView>
+          <View style={[styles.buttonsContainer, { marginTop: insets.top }]}>
+            <BackButton />
+            <FavouriteButton />
+          </View>
         </DefaultView>
       </DefaultView>
       <View style={styles.container}>
-       <View style={styles.section}>
+        <View style={styles.section}>
           <View style={[styles.sectionHeader, { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
             <Text style={styles.title}>Description</Text>
             <View style={styles.scoreContainer}>
@@ -190,27 +223,15 @@ export default function Trip() {
             ))}
           </View>
         </View>
+        <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat cumque quae ea? Vero animi harum error sequi repellendus ut expedita impedit, laudantium corporis odit fugit illo cum temporibus nostrum quis, veritatis at laboriosam dolorum nihil adipisci? Earum id ipsam quam dignissimos odit consequatur eum quibusdam esse? Magnam, tenetur doloribus dicta sed temporibus aliquid voluptates iste, accusantium repellendus sit sapiente vero id tempore quam nulla. Ab magnam blanditiis eveniet eos cum. Accusamus cupiditate, sed saepe voluptatem velit quidem tempora magnam repudiandae? Voluptatibus commodi necessitatibus rerum, placeat laborum sed, incidunt officiis nemo repudiandae aperiam iure vitae dicta! Ex delectus consectetur ipsum voluptas.</Text>
         <View style={styles.section}>
           <Text style={styles.title}>Itinerary</Text>
         </View>
-        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen}/>}
-      
-      <Modal isVisible={isMapFullScreen}>
-      {visits ? (
-        <TripMap
-          setScrollEnabled={setScrollEnabled}
-          visits={visits}
-          handleFullScreen={handleFullScreen}
-          isMapFullScreen={isMapFullScreen}
-        />
-      ) : (
-        <View> {/* TODO: placeholder element */}
-          <Text>Loading...</Text>
-        </View>
-      )}
-      </Modal>
+        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
+        <Modal visible={isMapFullScreen} statusBarTranslucent={true}>
+          {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
+        </Modal>
       </View>
-      
     </ScrollView>
   );
 }
@@ -244,6 +265,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
     justifyContent: 'flex-end',
     alignItems: 'flex-start',
+  },
+  buttonsContainer: {
+    position: 'absolute',
+    top: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    zIndex: 1,
+    backgroundColor: 'transparent',
   },
   overlayText: {
     fontSize: 18,

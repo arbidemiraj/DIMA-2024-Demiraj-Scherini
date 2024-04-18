@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderTopWidth: 1,
     flex: 1,
+    justifyContent: 'center',
   },
   catList: {
     paddingVertical: 20,

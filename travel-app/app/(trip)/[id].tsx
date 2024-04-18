@@ -16,6 +16,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import PartecipanrChip from '@/components/PartecipantChip';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
@@ -185,7 +186,7 @@ export default function Trip() {
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled} onScroll={handleScroll} scrollEventThrottle={1}>
       {/* modify the back arrow to be always white only in this page, create a custom function that compute the correct color*/}
       <StatusBar animated={false} style={styleStatusBar()} backgroundColor='rgba(0,0,0,0.3)' />
-      {Platform.OS === 'ios' && <Stack.Screen options={{ headerShown: hasScrolled, headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background }, headerTitle: trip?.name!, headerLeft: () => <></>, headerTitleAlign: 'center' }} />}
+      {Platform.OS === 'ios' && <Stack.Screen options={{ headerShown: hasScrolled, headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background }, headerTitle: trip?.name!, headerLeft: () => <></>, headerRight: () => <></> }} />}
       {Platform.OS === 'android' && <Stack.Screen options={{ headerShown: false }} />}
       {/* modify the status bar only in this page*/}
       <DefaultView style={styles.imageContainer}>
@@ -216,6 +217,14 @@ export default function Trip() {
           <Text style={{ fontSize: 16 }}>{trip?.description}</Text>
         </View>
         <View style={styles.section}>
+          <Text style={[styles.title, styles.sectionHeader]}>Partecipants</Text>
+          <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap' }}>
+            {trip?.partecipants.map((user, index) => (
+              <PartecipanrChip key={index} username={user.profile.username!} role={user.role} />
+            ))}
+          </View>
+        </View>
+        <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Activities</Text>
           <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
             {visits?.map((visit, index) => (
@@ -223,7 +232,6 @@ export default function Trip() {
             ))}
           </View>
         </View>
-        <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat cumque quae ea? Vero animi harum error sequi repellendus ut expedita impedit, laudantium corporis odit fugit illo cum temporibus nostrum quis, veritatis at laboriosam dolorum nihil adipisci? Earum id ipsam quam dignissimos odit consequatur eum quibusdam esse? Magnam, tenetur doloribus dicta sed temporibus aliquid voluptates iste, accusantium repellendus sit sapiente vero id tempore quam nulla. Ab magnam blanditiis eveniet eos cum. Accusamus cupiditate, sed saepe voluptatem velit quidem tempora magnam repudiandae? Voluptatibus commodi necessitatibus rerum, placeat laborum sed, incidunt officiis nemo repudiandae aperiam iure vitae dicta! Ex delectus consectetur ipsum voluptas.</Text>
         <View style={styles.section}>
           <Text style={styles.title}>Itinerary</Text>
         </View>

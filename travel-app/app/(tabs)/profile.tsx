@@ -1,40 +1,140 @@
-import { Alert, StyleSheet } from 'react-native'
-import React from 'react'
+import { StyleSheet, Image } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
+import { Profile, TripDetails } from '@/types/types';
+import { useFocusEffect } from 'expo-router';
+import { GridLayout } from '@/components/GridLayout';
+import { ScrollView } from '@/components/Themed';
+import { Link } from 'expo-router';
 
-export default function Profile() {
+export default function ProfilePage() {
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<Profile>();
+  const [trips, setTrips] = useState<TripDetails[]>([]);
+  const userID = useAuth().user?.id;
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      getTrips();
+    }, [])
+  );
+
+  const getUser = async () => {
+    try {
+      if (userID === undefined) {
+        alert('No user logged-in');
+        return;
+      }
+      const { data, error } = await supabase.from('profile').select('*').eq('id', userID).single();
+
+      if (error) throw error;
+      setUser(data);
+    } catch (err) {
+      console.log(err);
+      alert(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const doLogOut = async () => {
-    console.log("logging out")
+    console.log('logging out');
     const { error } = await supabase.auth.signOut();
-    if (error) Alert.alert(error.message);
-  }
+    if (error) alert(error.message);
+  };
 
-  const user = useAuth().user?.email;
+  const getTrips = async () => {
+    setLoading(true);
+    try {
+      if (!userID) return;
+
+      let query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
+      query.eq('profile_trip.profile.id', userID).eq('profile_trip.role', 'author');
+      const { data, error } = await query.order('start_date');
+
+      if (error) throw error;
+      if (trips === null) throw error;
+
+      // map response data to TripData type
+      const tripDetailsData: TripDetails[] = data.map((trip) => ({
+        id: trip.id,
+        cover_url: trip.cover_url,
+        description: trip.description,
+        start_date: trip.start_date,
+        end_date: trip.end_date,
+        score: trip.score,
+        name: trip.name,
+        categories: trip.category,
+        partecipants: trip.profile_trip.map((profileTrip) => ({
+          // TODO: remove ! and fix DB
+          // must be fixed in the DB, they cannot be null, then remove the !
+          role: profileTrip.role!,
+          profile: profileTrip.profile!,
+        })),
+      }));
+
+      if (data.length > 0) setTrips(tripDetailsData);
+    } catch (err) {
+      console.log(err);
+      alert('There was an error while retriving data from the server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const Item = ({ trip }: { trip: TripDetails }) => {
+    return (
+      <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild>
+        <Pressable>
+          <View style={{ paddingHorizontal: 2, paddingVertical: 2 }}>
+            <Image source={{ uri: trip.cover_url }} style={{ minHeight: 120, resizeMode: 'cover', borderRadius: 10, height: '100%' }} />
+          </View>
+        </Pressable>
+      </Link>
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      <Text>Welcome {user}</Text>
-      <Pressable onPress={doLogOut}>
-        <Text>Log Out</Text>
-      </Pressable>
-    </View>
-  )
+    <ScrollView style={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.title}>Displayed Name</Text>
+        <Text>{user?.username}</Text>
+        <Pressable onPress={doLogOut}>
+          <Text>Log Out</Text>
+        </Pressable>
+      </View>
+      <View style={styles.section}>
+        <Text style={styles.title}>Biography</Text>
+        <Text>{user?.biography}</Text>
+      </View>
+      <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
+        <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />
+      </View>
+    </ScrollView>
+  );
 }
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  section: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  row: {
+    flex: 1,
+    justifyContent: 'flex-start',
   },
 });

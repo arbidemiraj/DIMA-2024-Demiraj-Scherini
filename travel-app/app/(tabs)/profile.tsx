@@ -1,24 +1,35 @@
-import { Alert, StyleSheet } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { StyleSheet, Image } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
-import { Profile } from '@/types/types';
+import { Profile, TripDetails } from '@/types/types';
+import { useFocusEffect } from 'expo-router';
+import { GridLayout } from '@/components/GridLayout';
+import { ScrollView } from '@/components/Themed';
+import { Link } from 'expo-router';
 
 export default function ProfilePage() {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<Profile>();
+  const [trips, setTrips] = useState<TripDetails[]>([]);
   const userID = useAuth().user?.id;
 
   useEffect(() => {
     getUser();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      getTrips();
+    }, [])
+  );
+
   const getUser = async () => {
     try {
       if (userID === undefined) {
-        Alert.alert('No user logged-in');
+        alert('No user logged-in');
         return;
       }
       const { data, error } = await supabase.from('profile').select('*').eq('id', userID).single();
@@ -36,36 +47,94 @@ export default function ProfilePage() {
   const doLogOut = async () => {
     console.log('logging out');
     const { error } = await supabase.auth.signOut();
-    if (error) Alert.alert(error.message);
+    if (error) alert(error.message);
+  };
+
+  const getTrips = async () => {
+    setLoading(true);
+    try {
+      if (!userID) return;
+
+      let query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
+      query.eq('profile_trip.profile.id', userID).eq('profile_trip.role', 'author');
+      const { data, error } = await query.order('start_date');
+
+      if (error) throw error;
+      if (trips === null) throw error;
+
+      // map response data to TripData type
+      const tripDetailsData: TripDetails[] = data.map((trip) => ({
+        id: trip.id,
+        cover_url: trip.cover_url,
+        description: trip.description,
+        start_date: trip.start_date,
+        end_date: trip.end_date,
+        score: trip.score,
+        name: trip.name,
+        categories: trip.category,
+        partecipants: trip.profile_trip.map((profileTrip) => ({
+          // TODO: remove ! and fix DB
+          // must be fixed in the DB, they cannot be null, then remove the !
+          role: profileTrip.role!,
+          profile: profileTrip.profile!,
+        })),
+      }));
+
+      if (data.length > 0) setTrips(tripDetailsData);
+    } catch (err) {
+      console.log(err);
+      alert('There was an error while retriving data from the server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const Item = ({ trip }: { trip: TripDetails }) => {
+    return (
+      <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild>
+        <Pressable>
+          <View style={{ paddingHorizontal: 2, paddingVertical: 2 }}>
+            <Image source={{ uri: trip.cover_url }} style={{ minHeight: 120, resizeMode: 'cover', borderRadius: 10, height: '100%' }} />
+          </View>
+        </Pressable>
+      </Link>
+    );
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.section}>
         <Text style={styles.title}>Displayed Name</Text>
-        <Text> {user?.username}</Text>
+        <Text>{user?.username}</Text>
+        <Pressable onPress={doLogOut}>
+          <Text>Log Out</Text>
+        </Pressable>
       </View>
-      <Pressable onPress={doLogOut}>
-        <Text>Log Out</Text>
-      </Pressable>
       <View style={styles.section}>
         <Text style={styles.title}>Biography</Text>
-        <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur doloremque quisquam ipsum accusamus laudantium placeat at, qui reiciendis provident quis consequatur natus, mollitia iure sequi. Consectetur perferendis expedita atque velit at alias voluptates est minus totam quod. Sint, iure adipisci rerum doloribus nesciunt quia eligendi distinctio natus ullam voluptates. Vel.</Text>
+        <Text>{user?.biography}</Text>
       </View>
-    </View>
+      <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
+        <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
   },
   section: {
-    marginVertical: 20,
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  row: {
+    flex: 1,
+    justifyContent: 'flex-start',
   },
 });

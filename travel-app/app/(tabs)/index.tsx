@@ -75,8 +75,6 @@ export default function TabOneScreen() {
       if (error) throw error;
       if (trips === null) throw error;
 
-      //console.dir(data);
-
       // map response data to TripData type
       const tripDetailsData: TripDetails[] = data.map((trip) => ({
         id: trip.id,

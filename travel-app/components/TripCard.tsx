@@ -22,6 +22,8 @@ interface Props {
 
 // using memo for performance optimization
 export default memo(function TripCard({ trip }: Props) {
+  const scoreIconColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
+
   return (
     <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild>
       <Pressable>
@@ -31,7 +33,7 @@ export default memo(function TripCard({ trip }: Props) {
             <View style={styles.detailsTitle}>
               <Text style={styles.title}>{trip.name}</Text>
               <View style={styles.scoreContainer}>
-                <Text style={[styles.star, { color: useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint }]}>✱</Text>
+                <Text style={[styles.star, { color: scoreIconColor }]}>✱</Text>
                 <Text style={styles.score}>{trip.score?.toFixed(1)}</Text>
               </View>
             </View>

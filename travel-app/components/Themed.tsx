@@ -7,6 +7,7 @@ import { Text as DefaultText, View as DefaultView } from 'react-native';
 import { SafeAreaView as DefaultSafeAreaView, SafeAreaViewProps as DefaultSafeAreaProps } from 'react-native-safe-area-context';
 import { BottomSheetViewProps as DefaultBottomSheetProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetView/types';
 import { BottomSheetView as DefaultBottomSheetView, BottomSheetModal as DefaultBottomSheetModal } from '@gorhom/bottom-sheet';
+import { ScrollView as DefaultScrollView } from 'react-native-gesture-handler';
 import Colors from '@/constants/Colors';
 
 import { useColorScheme } from './useColorScheme';
@@ -20,6 +21,7 @@ export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
 export type SafeAreaViewProps = ThemeProps & DefaultSafeAreaProps & { edges?: string[] };
 export type BottomSheetViewProps = ThemeProps & DefaultBottomSheetProps;
+export type ScrollViewProps = ThemeProps & DefaultScrollView['props'];
 
 export function useThemeColor(props: { light?: string; dark?: string }, colorName: keyof typeof Colors.light & keyof typeof Colors.dark) {
   const theme = useColorScheme() ?? 'light';
@@ -58,4 +60,10 @@ export function BottomSheetView(props: BottomSheetViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
   return <DefaultBottomSheetView style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+
+export function ScrollView(props: ScrollViewProps) {
+  const { style, lightColor, darkColor, ...otherProps } = props;
+  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+  return <DefaultScrollView style={[{ backgroundColor }, style]} {...otherProps} />;
 }

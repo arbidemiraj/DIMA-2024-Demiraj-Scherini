@@ -2,7 +2,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { View as DefaultView, Modal, Platform } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
 import { TripDetails, VisitDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
@@ -225,10 +225,14 @@ export default function Trip() {
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={[styles.title, styles.sectionHeader]}>Activities</Text>
+          <Text style={[styles.title, styles.sectionHeader]}>Visits</Text>
           <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
             {visits?.map((visit, index) => (
-              <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+              <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild key={index}>
+                <Pressable>
+                  <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+                </Pressable>
+              </Link>
             ))}
           </View>
         </View>

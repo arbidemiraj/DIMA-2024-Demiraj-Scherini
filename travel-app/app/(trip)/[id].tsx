@@ -16,7 +16,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import PartecipanrChip from '@/components/PartecipantChip';
+import ParticipanrChip from '@/components/ParticipantChip';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
@@ -186,7 +186,17 @@ export default function Trip() {
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled} onScroll={handleScroll} scrollEventThrottle={1}>
       {/* modify the back arrow to be always white only in this page, create a custom function that compute the correct color*/}
       <StatusBar animated={false} style={styleStatusBar()} backgroundColor='rgba(0,0,0,0.3)' />
-      {Platform.OS === 'ios' && <Stack.Screen options={{ headerShown: hasScrolled, headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background }, headerTitle: trip?.name!, headerLeft: () => <></>, headerRight: () => <></> }} />}
+      {Platform.OS === 'ios' && (
+        <Stack.Screen
+          options={{
+            headerShown: hasScrolled,
+            headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background },
+            headerTitle: trip?.name!,
+            headerLeft: () => <></>,
+            headerRight: () => <></>,
+          }}
+        />
+      )}
       {Platform.OS === 'android' && <Stack.Screen options={{ headerShown: false }} />}
       {/* modify the status bar only in this page*/}
       <DefaultView style={styles.imageContainer}>
@@ -220,7 +230,7 @@ export default function Trip() {
           <Text style={[styles.title, styles.sectionHeader]}>Partecipants</Text>
           <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap' }}>
             {trip?.partecipants.map((user, index) => (
-              <PartecipanrChip key={index} username={user.profile.username!} role={user.role} />
+              <ParticipanrChip userID={user.profile.id} key={index} username={user.profile.username!} role={user.role} />
             ))}
           </View>
         </View>

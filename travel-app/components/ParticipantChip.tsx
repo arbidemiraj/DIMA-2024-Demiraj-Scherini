@@ -17,9 +17,10 @@ import { Link } from 'expo-router';
 interface Props {
   username: string;
   role: string;
+  userID: string;
 }
 
-export default function CustomButton({ username, role }: Props) {
+export default function ParticipantChip({ userID, username, role }: Props) {
   const colorScheme = useColorScheme();
 
   function RoleIcon(): ReactNode {
@@ -29,8 +30,17 @@ export default function CustomButton({ username, role }: Props) {
   }
 
   return (
-    <Link href={{ pathname: '/(tabs)/profile' }}>
-      <View style={[styles.container, { borderColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text, borderTopColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text, borderBottomColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text }]}>
+    <Link href={{ pathname: '/(profile)/[id]', params: { id: userID } }}>
+      <View
+        style={[
+          styles.container,
+          {
+            borderColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
+            borderTopColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
+            borderBottomColor: colorScheme === 'light' ? Colors.light.text : Colors.dark.text,
+          },
+        ]}
+      >
         <RoleIcon />
         <Text style={styles.text}>{username}</Text>
       </View>

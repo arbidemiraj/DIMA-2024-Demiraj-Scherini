@@ -5,7 +5,7 @@ import { Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
 import { Profile, TripDetails } from '@/types/types';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { GridLayout } from '@/components/GridLayout';
 import { ScrollView } from '@/components/Themed';
 import { Link } from 'expo-router';

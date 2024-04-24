@@ -2,7 +2,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { View as DefaultView, Modal, Platform } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Image } from 'react-native';
 import { TripDetails, VisitDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
@@ -16,7 +16,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import PartecipanrChip from '@/components/PartecipantChip';
+import ParticipanrChip from '@/components/ParticipantChip';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
@@ -186,7 +186,17 @@ export default function Trip() {
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled} onScroll={handleScroll} scrollEventThrottle={1}>
       {/* modify the back arrow to be always white only in this page, create a custom function that compute the correct color*/}
       <StatusBar animated={false} style={styleStatusBar()} backgroundColor='rgba(0,0,0,0.3)' />
-      {Platform.OS === 'ios' && <Stack.Screen options={{ headerShown: hasScrolled, headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background }, headerTitle: trip?.name!, headerLeft: () => <></>, headerRight: () => <></> }} />}
+      {Platform.OS === 'ios' && (
+        <Stack.Screen
+          options={{
+            headerShown: hasScrolled,
+            headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background },
+            headerTitle: trip?.name!,
+            headerLeft: () => <></>,
+            headerRight: () => <></>,
+          }}
+        />
+      )}
       {Platform.OS === 'android' && <Stack.Screen options={{ headerShown: false }} />}
       {/* modify the status bar only in this page*/}
       <DefaultView style={styles.imageContainer}>
@@ -220,15 +230,19 @@ export default function Trip() {
           <Text style={[styles.title, styles.sectionHeader]}>Partecipants</Text>
           <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap' }}>
             {trip?.partecipants.map((user, index) => (
-              <PartecipanrChip key={index} username={user.profile.username!} role={user.role} />
+              <ParticipanrChip userID={user.profile.id} key={index} username={user.profile.username!} role={user.role} />
             ))}
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={[styles.title, styles.sectionHeader]}>Activities</Text>
+          <Text style={[styles.title, styles.sectionHeader]}>Visits</Text>
           <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
             {visits?.map((visit, index) => (
-              <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+              <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild key={index}>
+                <Pressable>
+                  <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+                </Pressable>
+              </Link>
             ))}
           </View>
         </View>

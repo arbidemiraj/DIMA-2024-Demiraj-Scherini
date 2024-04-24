@@ -5,7 +5,7 @@ import { Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
 import { Profile, TripDetails } from '@/types/types';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { GridLayout } from '@/components/GridLayout';
 import { ScrollView } from '@/components/Themed';
 import { Link } from 'expo-router';
@@ -104,14 +104,14 @@ export default function ProfilePage() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
-        <Text style={styles.title}>Displayed Name</Text>
+        <Text style={[styles.title, styles.sectionHeader]}>Displayed Name</Text>
         <Text>{user?.username}</Text>
         <Pressable onPress={doLogOut}>
           <Text>Log Out</Text>
         </Pressable>
       </View>
       <View style={styles.section}>
-        <Text style={styles.title}>Biography</Text>
+        <Text style={[styles.title, styles.sectionHeader]}>Biography</Text>
         <Text>{user?.biography}</Text>
       </View>
       <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
@@ -128,6 +128,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  sectionHeader: {
+    paddingBottom: 10,
   },
   section: {
     marginTop: 20,

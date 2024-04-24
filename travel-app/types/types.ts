@@ -20,3 +20,9 @@ export type TripDetails = Trip & {
 export type VisitDetails = Visit & {
   images: Image[];
 };
+
+export type CommentDetails = {
+  commentID: Comment['id'];
+  commentContent: Comment['comment'];
+  user: Profile['username'];
+};

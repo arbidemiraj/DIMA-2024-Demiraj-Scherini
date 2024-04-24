@@ -64,6 +64,8 @@ export function BottomSheetView(props: BottomSheetViewProps) {
 
 export function ScrollView(props: ScrollViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
+  const borderBottomColor = useThemeColor({ light: lightColor, dark: darkColor }, 'separator');
+  const borderTopColor = useThemeColor({ light: lightColor, dark: darkColor }, 'separator');
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
-  return <DefaultScrollView style={[{ backgroundColor }, style]} {...otherProps} />;
+  return <DefaultScrollView style={[{ backgroundColor, borderBottomColor, borderTopColor }, style]} {...otherProps} />;
 }

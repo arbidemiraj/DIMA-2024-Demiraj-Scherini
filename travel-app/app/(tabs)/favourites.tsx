@@ -17,14 +17,14 @@ export default function Favourites() {
   useEffect(() => {
     if (isFocused) {
       getFavTrips();
-    } 
+    }
 
     //Reset when component unmounts
     return () => {
       setTrips([]);
     };
   }, [isFocused]);
-  
+
   const handleEndReached = () => {};
 
   const getFavTrips = async () => {
@@ -68,11 +68,11 @@ export default function Favourites() {
           })),
         }));
 
-        setTrips(tripDetailsData); 
+        setTrips(tripDetailsData);
       }
     } catch (err) {
       console.log(err);
-      alert(err);
+      alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);
     }

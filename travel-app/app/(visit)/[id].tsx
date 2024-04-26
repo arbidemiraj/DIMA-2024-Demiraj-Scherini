@@ -1,7 +1,7 @@
 import React, { ReactNode, useCallback, useEffect, useState, useRef } from 'react';
 import { Text, View } from '@/components/Themed';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Image, useColorScheme, Pressable } from 'react-native';
+import { StyleSheet, Image, useColorScheme, Pressable, Animated } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { CommentDetails, VisitDetails } from '@/types/types';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -11,6 +11,7 @@ import Colors from '@/constants/Colors';
 import CommentsBottomSheet from '@/components/CommentsBottomSheet';
 import Comment from '@/components/Comment';
 import { ScrollView } from 'react-native-gesture-handler';
+import { ScalingDot, SlidingBorder, ExpandingDot, SlidingDot } from 'react-native-animated-pagination-dots';
 
 export default function Visit() {
   const { id } = useLocalSearchParams();
@@ -67,7 +68,6 @@ export default function Visit() {
 
     if (error) throw error;
     if (visit === null) throw error;
-    console.log(data);
 
     const commentsData: CommentDetails[] = data.map((x) => ({
       commentID: x.id,
@@ -87,7 +87,6 @@ export default function Visit() {
     try {
       const { data, error } = await supabase.from('comment').insert({ profile_id: userID, comment: comment, visit_id: visit?.id });
       if (error) throw error;
-      console.log(data);
       scrollViewRef.current?.scrollToEnd();
     } catch (err) {
       console.log(err);
@@ -116,6 +115,7 @@ export default function Visit() {
           ))}
         </PagerView>
       )}
+
       <View style={{ flex: 0.5 }}>
         <View style={[styles.section, { marginTop: 0 }]}>
           <Text style={[styles.title, styles.sectionHeader]}>Description</Text>
@@ -161,5 +161,9 @@ const styles = StyleSheet.create({
   page: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  dotContainer: {
+    justifyContent: 'center',
+    alignSelf: 'center',
   },
 });

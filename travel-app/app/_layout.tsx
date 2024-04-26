@@ -42,6 +42,7 @@ const InitialLayout = () => {
       <Stack.Screen name='(auth)' options={{ headerShown: false }} />
       <Stack.Screen name='(trip)/[id]' options={{ headerTransparent: true, headerTitle: '' }} />
       <Stack.Screen name='(visit)/[id]' options={{ headerTitle: 'Visit', headerTitleAlign: 'center' }} />
+      <Stack.Screen name='settings' options={{ headerTitle: 'Settings', headerTitleAlign: 'center' }} />
     </Stack>
   );
 };

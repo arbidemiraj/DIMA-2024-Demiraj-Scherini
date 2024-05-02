@@ -1,14 +1,14 @@
-import { StyleSheet, Image } from 'react-native';
+import { StyleSheet, Image, useColorScheme } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
 import { Profile, TripDetails } from '@/types/types';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { GridLayout } from '@/components/GridLayout';
 import { ScrollView } from '@/components/Themed';
-import { Link } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 
 export default function ProfilePage() {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -16,12 +16,9 @@ export default function ProfilePage() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const userID = useAuth().user?.id;
 
-  useEffect(() => {
-    getUser();
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
+      getUser();
       getTrips();
     }, [])
   );
@@ -42,12 +39,6 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const doLogOut = async () => {
-    console.log('logging out');
-    const { error } = await supabase.auth.signOut();
-    if (error) alert(error.message);
   };
 
   const getTrips = async () => {
@@ -103,13 +94,11 @@ export default function ProfilePage() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.section}>
-        <Text style={[styles.title, styles.sectionHeader]}>Displayed Name</Text>
-        <Text>{user?.username}</Text>
-        <Pressable onPress={doLogOut}>
-          <Text>Log Out</Text>
-        </Pressable>
-      </View>
+      <Stack.Screen
+        options={{
+          headerTitle: user?.username!,
+        }}
+      />
       <View style={styles.section}>
         <Text style={[styles.title, styles.sectionHeader]}>Biography</Text>
         <Text>{user?.biography}</Text>

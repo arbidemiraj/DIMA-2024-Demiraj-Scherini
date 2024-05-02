@@ -1,12 +1,11 @@
 import { StyleSheet } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TripDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
 import { View } from '@/components/Themed';
 import TripList from '@/components/TripList';
 import { useIsFocused } from '@react-navigation/native';
-import { useFocusEffect } from 'expo-router';
 
 export default function Favourites() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
@@ -17,14 +16,14 @@ export default function Favourites() {
   useEffect(() => {
     if (isFocused) {
       getFavTrips();
-    } 
+    }
 
     //Reset when component unmounts
     return () => {
       setTrips([]);
     };
   }, [isFocused]);
-  
+
   const handleEndReached = () => {};
 
   const getFavTrips = async () => {
@@ -40,8 +39,6 @@ export default function Favourites() {
       });
 
       const filteredIds = filteredResult.map(([key, value]) => parseInt(key));
-
-      console.log('ids:', filteredIds);
 
       const { data, error } = await supabase.from('trip').select(`*, category(*), profile_trip(role, profile(*))`).in('id', filteredIds).order('id');
 
@@ -68,11 +65,11 @@ export default function Favourites() {
           })),
         }));
 
-        setTrips(tripDetailsData); 
+        setTrips(tripDetailsData);
       }
     } catch (err) {
       console.log(err);
-      alert(err);
+      alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);
     }

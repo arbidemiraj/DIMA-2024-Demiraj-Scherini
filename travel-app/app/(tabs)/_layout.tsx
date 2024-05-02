@@ -1,11 +1,12 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
+import { Tabs, Link } from 'expo-router';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
+import { Iconify } from 'react-native-iconify';
+import { Pressable } from 'react-native';
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string }) {
   return <FontAwesome size={25} style={{ marginBottom: -3 }} {...props} />;
@@ -55,6 +56,20 @@ export default function TabLayout() {
           title: 'Your Profile',
           headerTitleAlign: 'center',
           tabBarIcon: ({ color }) => <TabBarIcon name='user' color={color} />,
+          headerRight: () => (
+            <Link href={'/settings'} asChild>
+              <Pressable>
+                {({ pressed }) => (
+                  <Iconify
+                    icon='material-symbols:settings'
+                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+                    size={26}
+                    color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text}
+                  />
+                )}
+              </Pressable>
+            </Link>
+          ),
         }}
       />
     </Tabs>

@@ -101,7 +101,7 @@ export default function TabOneScreen() {
       }
     } catch (err) {
       console.log(err);
-      alert(err);
+      alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);
     }

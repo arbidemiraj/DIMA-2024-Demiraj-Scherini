@@ -39,7 +39,7 @@ export default function CustomButton({ text, altStyle, func }: Props) {
   return (
     <View style={[styles.container, computeBackground()]}>
       <Pressable onPress={func} style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-        <Text style={[styles.text, computeTextColor()]}>{text}</Text>
+        {({ pressed }) => <Text style={[styles.text, computeTextColor(), { opacity: pressed ? 0.5 : 1 }]}>{text}</Text>}
       </Pressable>
     </View>
   );

@@ -80,7 +80,7 @@ export default function Trip() {
       setVisits((prev) => (prev = visits));
     } catch (err) {
       console.log(err);
-      alert(err);
+      alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export default function Trip() {
       });
     } catch (err) {
       console.log(err);
-      alert(err);
+      alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);
     }
@@ -200,20 +200,26 @@ export default function Trip() {
       {Platform.OS === 'android' && <Stack.Screen options={{ headerShown: false }} />}
       {/* modify the status bar only in this page*/}
       <DefaultView style={styles.imageContainer}>
-        <Image source={{ uri: trip?.cover_url }} style={styles.image} />
-        <DefaultView style={styles.overlay}>
-          <DefaultView style={{ padding: 20, marginBottom: 10 }}>
-            <Text style={{ color: Colors.dark.text, fontWeight: 'bold', fontSize: 28 }}>{trip?.name}</Text>
-            <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>Author - {trip?.partecipants[0].profile.username}</Text>
-            <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>
-              From {useDateFormatter(trip?.start_date!)} to {useDateFormatter(trip?.end_date!)}
-            </Text>
-          </DefaultView>
-          <View style={[styles.buttonsContainer, { marginTop: insets.top }]}>
-            <BackButton />
-            <FavouriteButton />
+        {isLoading ? (
+          <View style={{ height: 350, backgroundColor: '#333' }}></View>
+        ) : (
+          <View>
+            <Image source={{ uri: trip?.cover_url }} style={styles.image} />
+            <DefaultView style={styles.overlay}>
+              <DefaultView style={{ padding: 20, marginBottom: 10 }}>
+                <Text style={{ color: Colors.dark.text, fontWeight: 'bold', fontSize: 28 }}>{trip?.name}</Text>
+                <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>Author - {trip?.partecipants[0].profile.username}</Text>
+                <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>
+                  From {useDateFormatter(trip?.start_date!)} to {useDateFormatter(trip?.end_date!)}
+                </Text>
+              </DefaultView>
+              <View style={[styles.buttonsContainer, { marginTop: insets.top }]}>
+                <BackButton />
+                <FavouriteButton />
+              </View>
+            </DefaultView>
           </View>
-        </DefaultView>
+        )}
       </DefaultView>
       <View style={styles.container}>
         <View style={styles.section}>
@@ -224,7 +230,7 @@ export default function Trip() {
               <Text style={styles.score}>{trip?.score?.toFixed(1)}</Text>
             </View>
           </View>
-          <Text style={{ fontSize: 16 }}>{trip?.description}</Text>
+          <Text style={{ fontSize: 16 }}>{trip && trip.description}</Text>
         </View>
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Partecipants</Text>
@@ -237,13 +243,14 @@ export default function Trip() {
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Visits</Text>
           <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
-            {visits?.map((visit, index) => (
-              <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild key={index}>
-                <Pressable>
-                  <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
-                </Pressable>
-              </Link>
-            ))}
+            {visits &&
+              visits.map((visit, index) => (
+                <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild key={index}>
+                  <Pressable>
+                    <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
+                  </Pressable>
+                </Link>
+              ))}
           </View>
         </View>
         <View style={styles.section}>

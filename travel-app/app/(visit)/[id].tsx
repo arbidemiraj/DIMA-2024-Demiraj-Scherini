@@ -1,7 +1,7 @@
 import React, { ReactNode, useCallback, useEffect, useState, useRef } from 'react';
 import { Text, View } from '@/components/Themed';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Image, useColorScheme, Pressable, Animated } from 'react-native';
+import { StyleSheet, Image, useColorScheme, Pressable, Animated, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { CommentDetails, VisitDetails } from '@/types/types';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -11,7 +11,6 @@ import Colors from '@/constants/Colors';
 import CommentsBottomSheet from '@/components/CommentsBottomSheet';
 import Comment from '@/components/Comment';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ScalingDot, SlidingBorder, ExpandingDot, SlidingDot } from 'react-native-animated-pagination-dots';
 
 export default function Visit() {
   const { id } = useLocalSearchParams();
@@ -64,18 +63,25 @@ export default function Visit() {
   };
 
   const getComments = async () => {
-    const { data, error } = await supabase.from('comment').select(`*, profile(*)`).eq('visit_id', id);
+    try {
+      const { data, error } = await supabase.from('comment').select(`*, profile(*)`).eq('visit_id', id);
 
-    if (error) throw error;
-    if (visit === null) throw error;
+      if (error) throw error;
+      if (visit === null) throw error;
 
-    const commentsData: CommentDetails[] = data.map((x) => ({
-      commentID: x.id,
-      commentContent: x.comment,
-      user: x.profile?.username!,
-    }));
+      const commentsData: CommentDetails[] = data.map((x) => ({
+        commentID: x.id,
+        commentContent: x.comment,
+        user: x.profile?.username!,
+      }));
 
-    setComments(commentsData);
+      setComments(commentsData);
+    } catch (err) {
+      console.log(err);
+      alert('Error while fetching the comments');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleModal = () => {
@@ -105,10 +111,11 @@ export default function Visit() {
       <View style={styles.section}>
         <Text style={styles.title}>{visit?.name}</Text>
       </View>
-      {!visit && <View style={styles.carousel}></View>}
-      {visit && (
+      {!visit ? (
+        <View style={styles.carousel}></View>
+      ) : (
         <PagerView style={styles.carousel} initialPage={0} scrollEnabled={visit.images.length > 1}>
-          {visit?.images.map((item, index) => (
+          {visit.images.map((item, index) => (
             <View style={styles.page} key={index}>
               <Image source={{ uri: item.url! }} style={{ resizeMode: 'cover', width: '100%', height: '100%' }} />
             </View>
@@ -119,7 +126,7 @@ export default function Visit() {
       <View style={{ flex: 0.5 }}>
         <View style={[styles.section, { marginTop: 0 }]}>
           <Text style={[styles.title, styles.sectionHeader]}>Description</Text>
-          <Text>{visit?.description}</Text>
+          {visit && <Text>{visit?.description}</Text>}
         </View>
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Comments</Text>

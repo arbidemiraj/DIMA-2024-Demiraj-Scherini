@@ -16,12 +16,9 @@ export default function ProfilePage() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const userID = useAuth().user?.id;
 
-  useEffect(() => {
-    getUser();
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
+      getUser();
       getTrips();
     }, [])
   );

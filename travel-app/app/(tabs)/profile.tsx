@@ -9,6 +9,8 @@ import { useFocusEffect } from 'expo-router';
 import { GridLayout } from '@/components/GridLayout';
 import { ScrollView } from '@/components/Themed';
 import { Link, Stack } from 'expo-router';
+import { Iconify } from 'react-native-iconify';
+import Colors from '@/constants/Colors';
 
 export default function ProfilePage() {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -35,7 +37,7 @@ export default function ProfilePage() {
       setUser(data);
     } catch (err) {
       console.log(err);
-      alert(err);
+      alert('Error while fetching the user');
     } finally {
       setLoading(false);
     }
@@ -104,7 +106,14 @@ export default function ProfilePage() {
         <Text>{user?.biography}</Text>
       </View>
       <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
-        <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />
+        {trips.length > 0 ? (
+          <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />
+        ) : (
+          <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
+            <Iconify icon='tabler:photo-off' size={64} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ margin: 20 }} />
+            <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

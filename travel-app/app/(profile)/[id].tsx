@@ -97,8 +97,10 @@ export default function UserProfilePage() {
     );
   };
 
-  // we can decide to just return a view with re-routing
-
+  // for now I decided to just return a view with re-routing
+  /*if (id === useAuth().user?.id) {
+    return <Redirect href='/(tabs)/profile' />;
+  } else*/
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen

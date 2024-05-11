@@ -1,4 +1,4 @@
-import { StyleSheet, Image, useColorScheme } from 'react-native';
+import { StyleSheet, Image, useColorScheme, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { Pressable } from 'react-native';
@@ -17,6 +17,8 @@ export default function ProfilePage() {
   const [user, setUser] = useState<Profile>();
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const userID = useAuth().user?.id;
+
+  const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
   useFocusEffect(
     useCallback(() => {
@@ -38,8 +40,6 @@ export default function ProfilePage() {
     } catch (err) {
       console.log(err);
       alert('Error while fetching the user');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -106,11 +106,10 @@ export default function ProfilePage() {
         <Text>{user?.biography}</Text>
       </View>
       <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
-        {trips.length > 0 ? (
-          <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />
-        ) : (
+        {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
+        {trips.length === 0 && !isLoading && (
           <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
-            <Iconify icon='tabler:photo-off' size={64} color={useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text} style={{ margin: 20 }} />
+            <Iconify icon='tabler:photo-off' size={64} color={iconColor} style={{ margin: 20 }} />
             <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
           </View>
         )}

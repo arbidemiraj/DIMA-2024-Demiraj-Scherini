@@ -24,7 +24,7 @@ const InitialLayout = () => {
     } else if (!session) {
       // Redirect unauthenticated users to the login page
       //console.log("not logged")
-      router.replace('/(auth)/auth');
+      router.replace('/(auth)/login');
     }
   }, [session, initialized]);
 

@@ -1,4 +1,4 @@
-import { StyleSheet, Image, useColorScheme } from 'react-native';
+import { StyleSheet, Image, useColorScheme, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { Pressable } from 'react-native';
@@ -9,12 +9,16 @@ import { useFocusEffect } from 'expo-router';
 import { GridLayout } from '@/components/GridLayout';
 import { ScrollView } from '@/components/Themed';
 import { Link, Stack } from 'expo-router';
+import { Iconify } from 'react-native-iconify';
+import Colors from '@/constants/Colors';
 
 export default function ProfilePage() {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<Profile>();
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const userID = useAuth().user?.id;
+
+  const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
   useFocusEffect(
     useCallback(() => {
@@ -35,9 +39,7 @@ export default function ProfilePage() {
       setUser(data);
     } catch (err) {
       console.log(err);
-      alert(err);
-    } finally {
-      setLoading(false);
+      alert('Error while fetching the user');
     }
   };
 
@@ -104,7 +106,13 @@ export default function ProfilePage() {
         <Text>{user?.biography}</Text>
       </View>
       <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
-        <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />
+        {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
+        {trips.length === 0 && !isLoading && (
+          <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
+            <Iconify icon='tabler:photo-off' size={64} color={iconColor} style={{ margin: 20 }} />
+            <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

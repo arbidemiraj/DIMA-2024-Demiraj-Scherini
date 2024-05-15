@@ -1,39 +1,65 @@
-import {useState} from 'react';
-import { Image, View, StyleSheet, Text, TextInput, Pressable } from 'react-native';
+import { ReactNode, useEffect, useState} from 'react';
+import { Image, StyleSheet, Pressable } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { useColorScheme, Modal } from 'react-native';
+import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
-import { ScrollView } from '@/components/Themed';
+import { ScrollView, Text, View, TextInput} from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
 import CustomButton from '@/components/CustomButton';
-import ParticipanrChip from '@/components/ParticipantChip';
+import ParticipantChip from '@/components/ParticipantChip';
 import AddParticipantsModal from '@/components/AddParticipantsModal';
 import NewActivityModal from '@/components/NewActivityModal';
+import Tooltip from 'react-native-walkthrough-tooltip';
 
 interface User {
   id: string;
   username: string|null;
 }
 
+interface Activity {
+  title: string,
+  description: string,
+  photos: string[],
+}
+
+interface TooltipContentProps {
+  index: number;
+}
+
 export default function NewJournal() {
-  const [image, setImage] = useState<string>("");
+  const [image, setImage] = useState<string>('');
   const [descriptionText, onChangeDescription] = useState<string>('');
   const [titleText, onChangeTitle] = useState<string>('');
   const [givenStar, onChangeGivenStar] = useState<number>(0);
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
   const [isActivityModalVisible, setActivityModalVisible] = useState<boolean>(false);
+  const [isNewActivityModalVisible, setNewActivityModalVisible] = useState<boolean>(false);
   const [participants, setParticipants] = useState<User[]>([]);
-
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<Activity>({title: '', description: '', photos: []});
+  const [tooltipHandlers, setTooltipHandlers] = useState<boolean[]>(Array(activities.length).fill(false));
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
+
+  //Handles the addition of a new activity by adding the state variable for the associated tooltip 
+  useEffect(() => {
+    const updated = [...tooltipHandlers];
+    updated[activities.length - 1] = false;
+
+    setTooltipHandlers(updated);
+  }, [activities]);
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
 
   const toggleActivityModal = () => {
-    setActivityModalVisible(!isModalVisible);
+    setActivityModalVisible(!isActivityModalVisible);
+  };
+
+  const toggleNewActivityModal = () => {
+    setNewActivityModalVisible(!isNewActivityModalVisible);
   };
   
   const handleStar = (index: number) => {
@@ -84,10 +110,29 @@ export default function NewJournal() {
     }
   };*/
 
+  const toggleOptionModal = (index: number) => {
+    const updated = [...tooltipHandlers];
+    updated[index] = !updated[index];
+
+    setTooltipHandlers(updated);
+  }
+
   const removeParticipant = (indexToRemove:number) => {
     setParticipants(participants => participants.filter((_, index) => index !== indexToRemove));
   }
 
+  const deleteActivity = (index: number) => {
+    const updatedActivities = [...activities];
+    updatedActivities.splice(index, 1); // Remove the activity at the specified index
+    setActivities(updatedActivities);
+
+    const updated = [...tooltipHandlers];
+    updated.splice(index, 1); // Remove the activity at the specified index
+    setTooltipHandlers(updated);
+
+  };
+
+  // Function to detect labels using Google Vision API
   const detectLabels = async (imageUri:string) => {
     const apiKey = 'AIzaSyCa4-rskhmT6sUv9uab7be_pI8Lw9jmHyI'; // Replace with your API key
     const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
@@ -155,6 +200,25 @@ export default function NewJournal() {
     return tripCategories;
   };
 
+  function TooltipContent({index}: TooltipContentProps): ReactNode {
+    return (
+      <View style= {{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', }}>
+        {/*TODO DELETE ACTIVITY*/ }
+        <Pressable onPress={() => deleteActivity(index)}>
+          <Iconify icon='material-symbols:delete' size={34} color={iconColor} style={{ flex: 1, marginRight: 30}} />
+        </Pressable> 
+
+        <Pressable  onPress={() => {
+        toggleOptionModal(index);
+        setSelectedActivity(activities[index]); 
+        toggleActivityModal();
+        }}>
+          <Iconify icon='flowbite:edit-outline' size={34} color={iconColor} style={{ flex: 1,}} />
+        </Pressable> 
+      </View>
+    );
+  }
+  
   return (
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEventThrottle={1}>
       <View style={styles.container}>
@@ -224,17 +288,32 @@ export default function NewJournal() {
 
         <Text style={styles.title}>Activities</Text>
 
-        <View style={styles.activityContainer}>
+        <ScrollView horizontal={true} style={styles.activityContainer}>
+        {activities.map((activity, index) => {
+          return (            
+            <View>     
+              <Tooltip
+                key={index}
+                closeOnContentInteraction={true}
+                isVisible={tooltipHandlers[index]}
+                content={<TooltipContent index={index}></TooltipContent>}
+                placement="center"
+                onClose={() => toggleOptionModal(index)}
+              >
+                <Pressable key={index} onLongPress={() => {
+                toggleOptionModal(index);}}>
+                  <Image key={index} source={{ uri: activity.photos[0] }} style={styles.activityImage} />
+                </Pressable>
+              </Tooltip>       
+            </View>
+          );
+        })}
           <View style={styles.activity}>
-          </View>
-          <View style={styles.activity}>
-          </View>
-          <View style={styles.activity}>
-            <Pressable>
+            <Pressable onPress={() => toggleNewActivityModal()}>
               <Iconify icon='basil:add-solid' size={34} color={iconColor} />
-            </Pressable>
+            </Pressable> 
           </View>
-        </View>
+        </ScrollView>
       </View>
 
       <View style={styles.container}>
@@ -245,14 +324,15 @@ export default function NewJournal() {
           <CustomButton func={toggleModal} altStyle={false} text='Add participants' />
           <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap', marginVertical:20,}}>
             {participants.map((participant, index) => (
-              <ParticipanrChip userID={participant.id} key={index} username={participant.username??''} role={''}/>
+              <ParticipantChip userID={participant.id} key={index} username={participant.username??''} role={''}/>
             ))}
-          </View> 
+          </View>
         </View>
       </View>
       
       <AddParticipantsModal isModalVisible={isModalVisible} toggleModal={toggleModal} participants={participants} removeParticipant={removeParticipant} addParticipant={addParticipant}></AddParticipantsModal>
-      <NewActivityModal isModalVisible={isActivityModalVisible} toggleModal={toggleActivityModal}/>
+      <NewActivityModal isModalVisible={isActivityModalVisible} toggleModal={toggleActivityModal} index={activities.indexOf(selectedActivity)} activityInfos={selectedActivity} setActivities={setActivities}/>
+      <NewActivityModal isModalVisible={isNewActivityModalVisible} toggleModal={toggleNewActivityModal} index={activities.length} activityInfos={null} setActivities={setActivities}/>
 
     </ScrollView>
 
@@ -260,24 +340,14 @@ export default function NewJournal() {
 }
 
 const styles = StyleSheet.create({
-  inputContainerDropdown: {
-    paddingHorizontal: 5,
-    marginLeft: 10,
-    borderBottomColor: '#737373',
-    marginBottom: 20,
-    color: '#000',
-  },
-  dropdownContainer: {
-    backgroundColor: 'white',
-    marginTop: 5,
-    marginLeft: 5,
-    marginRight: 5,
-    borderRadius: 5,
-    elevation: 3,
-    maxHeight: 150,
-    marginBottom: 200,
-  },
-  flatList: {
+  activityImage: {
+    height: 100,
+    width: 100,
+    marginRight: 25,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 30,
   },
   container: {
     flex: 1,
@@ -305,15 +375,25 @@ const styles = StyleSheet.create({
     padding: 10,
    
   },
-  image: {
-    width: 200,
-    height: 200,
-  },
   title: {
     fontWeight: 'bold',
     fontSize: 20,
     paddingHorizontal: 10,
     marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+    elevation: 5, // for Android shadow
   },
   picker: {
     marginTop: 10,
@@ -339,14 +419,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#737373',
     marginBottom: 20,
   },
-  score: {
-    fontWeight: 'bold',
-    fontSize: 20,
-  },
-  starSelected: {
-    marginRight: 5,
-    backgroundColor: '#737373'
-  },
   star: {
     marginRight: 5,
   },
@@ -360,5 +432,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-  }
+  },
 });

@@ -1,5 +1,5 @@
 import { SafeAreaView, Text, View } from '@/components/Themed';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, Modal, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from 'react-native';
@@ -31,6 +31,8 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
   const colorScheme = useColorScheme();
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [userText, OnChangeUser] = useState<string>('');
+
+  const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
 
   useEffect(() => {
     if(userText == '') setSearchResults([]);
@@ -71,24 +73,18 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
     }
   };
 
-  function RoleIcon(): ReactNode {
-    const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
-    return <Iconify icon='iconoir:user' size={28} color={iconColor} />;
-  }
-
-  function CloseIcon(): ReactNode {
-    const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
-
-    return <Iconify icon='carbon:close-filled' size={28} color={iconColor} />;
-  }
-
   
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true}>
       <SafeAreaView style={{flex: 1}}>
+      <View style= {{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20,}}>
       <Pressable onPress={toggleModal}>
-        <Iconify icon='mingcute:check-fill' size={28} color={'#000'} style={{marginRight: 10, alignSelf: 'flex-end', marginTop: 20}} />
+        <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{marginLeft: 10, flex: 1,}} />
       </Pressable>
+      <Pressable onPress={toggleModal}>
+        <Iconify icon='mingcute:check-fill' size={28} color={iconColor} style={{marginRight: 10, flex: 1,}} />
+      </Pressable>
+      </View>
         <View style={styles.modalInputContainer}>
         
         <TextInput

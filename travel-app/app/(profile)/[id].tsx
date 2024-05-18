@@ -106,6 +106,7 @@ export default function UserProfilePage() {
       <Stack.Screen
         options={{
           headerTitle: user?.username!,
+          headerTitleAlign: 'center',
         }}
       />
       <View style={styles.section}>

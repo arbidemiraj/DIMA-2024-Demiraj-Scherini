@@ -1,26 +1,20 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Pressable, Modal, useColorScheme, Dimensions, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/Colors';
-import { View, Text, ScrollView, TextInput, SafeAreaView} from '@/components/Themed';
+import { View, Text, ScrollView, TextInput, SafeAreaView } from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
 import CustomButton from '@/components/CustomButton';
 import { useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import Animated, {
-    useSharedValue,
-    useAnimatedStyle,
-    useAnimatedScrollHandler,
-    interpolate,
-    interpolateColor,
-    Extrapolate,
-  } from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, interpolate, interpolateColor, Extrapolate } from 'react-native-reanimated';
 import GooglePlacesInput from './GooglePlacesInput';
-  
-const { width } = Dimensions.get("screen");
 
-const textColor = "#2A3B38";
+const { width } = Dimensions.get('screen');
+
+const textColor = '#2A3B38';
 const slideWidth = width * 0.9;
 const slideHeight = 350;
 
@@ -29,20 +23,20 @@ type SetStateFunction<T> = React.Dispatch<React.SetStateAction<T>>;
 interface Props {
   isModalVisible: boolean;
   toggleModal: () => void;
-  activityInfos: Activity|null;
-  index: number,
+  activityInfos: Activity | null;
+  index: number;
   setActivities: SetStateFunction<Activity[]>;
-  setCategories: SetStateFunction<string[]>; 
+  setCategories: SetStateFunction<string[]>;
   tripCategories: string[];
 }
 
 interface Activity {
-    title: string,
-    description: string,
-    photos: string[],
+  title: string;
+  description: string;
+  photos: string[];
 }
 
-export default function NewActivityModal({isModalVisible, toggleModal, index, activityInfos, setActivities, setCategories, tripCategories} : Props) {
+export default function NewActivityModal({ isModalVisible, toggleModal, index, activityInfos, setActivities, setCategories, tripCategories }: Props) {
   const [image, setImage] = useState<string>('');
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
@@ -52,6 +46,9 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
     title: '',
     photos: [],
   });
+
+  // calculate the top padding for the modal
+  const topPadding = useSafeAreaInsets().top;
 
   useEffect(() => {
     if (activityInfos !== null) {
@@ -68,7 +65,7 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
       });
     }
   }, [activityInfos, isFocused]);
-  
+
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -81,53 +78,52 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
     if (!result.canceled) {
       setImage(result.assets[0].uri);
       detectLabels(result.assets[0].uri);
-      
-      setActivityState(prevState => ({
+
+      setActivityState((prevState) => ({
         ...prevState,
         photos: [...prevState.photos, result.assets[0].uri],
       }));
     }
   };
-  
-  // Function to detect labels using Google Vision API
-  const detectLabels = async (imageUri:string) => {
-      const apiKey = 'AIzaSyCa4-rskhmT6sUv9uab7be_pI8Lw9jmHyI'; // Replace with your API key
-      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-      
-      const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-  
-      const requestData = {
-        requests: [
-          {
-            image: {
-              content: base64ImageData,
-            },
-            features: [{ type: 'LABEL_DETECTION', maxResults: 25}],
-          },
-        ],
-      };
-  
-      try {
-        const response = await fetch(apiURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-        });
-  
-        const data = await response.json();
-        const labelAnnotations = data.responses[0].labelAnnotations;
-        getCategories(labelAnnotations);
 
-      } catch (error) {
-          console.error('Error detecting labels:', error);
-      }
+  // Function to detect labels using Google Vision API
+  const detectLabels = async (imageUri: string) => {
+    const apiKey = 'AIzaSyCa4-rskhmT6sUv9uab7be_pI8Lw9jmHyI'; // Replace with your API key
+    const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+
+    const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const requestData = {
+      requests: [
+        {
+          image: {
+            content: base64ImageData,
+          },
+          features: [{ type: 'LABEL_DETECTION', maxResults: 25 }],
+        },
+      ],
+    };
+
+    try {
+      const response = await fetch(apiURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const data = await response.json();
+      const labelAnnotations = data.responses[0].labelAnnotations;
+      getCategories(labelAnnotations);
+    } catch (error) {
+      console.error('Error detecting labels:', error);
+    }
   };
 
-  const getCategories = (labelAnnotations:any) => {
+  const getCategories = (labelAnnotations: any) => {
     let tripCategories: string[] = [];
 
     const categories: { [key: string]: string[] } = {
@@ -142,56 +138,47 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
       wildlife: ['wildlife', 'animals', 'nature reserve', 'wild', 'fauna', 'safari', 'birdwatching', 'zoo', 'national park', 'conservation'],
       food: ['food', 'cuisine', 'restaurant', 'dining', 'gastronomy', 'cooking', 'chef', 'foodie', 'delicious', 'tasting'],
     };
-  
+
     for (let category in categories) {
-      categories[category].forEach(label => {
-        labelAnnotations.forEach((element: { description: string; }) => {
+      categories[category].forEach((label) => {
+        labelAnnotations.forEach((element: { description: string }) => {
           if (element.description.toLowerCase() === label && !tripCategories.includes(category)) {
             tripCategories.push(category);
           }
         });
-      })
-    };
+      });
+    }
 
     setCategories((prevCategories) => {
-
-        return [...prevCategories, ...tripCategories];
+      return [...prevCategories, ...tripCategories];
     });
-
   };
 
-  const removeImage = (indexToRemove: number) =>  {
-    setActivityState(prevState => ({
+  const removeImage = (indexToRemove: number) => {
+    setActivityState((prevState) => ({
       ...prevState,
       photos: prevState.photos.filter((_, index) => index !== indexToRemove),
     }));
-  }
+  };
 
   const showAlert = () => {
-    Alert.alert('Error', 'Please fill all the inputs', [
-        {text: 'OK'},
-      ]);
-   }
+    Alert.alert('Error', 'Please fill all the inputs', [{ text: 'OK' }]);
+  };
 
   //Handles the single component for the slideshow
   const Slide = ({ slide, scrollOffset, index }: any) => {
     const animatedStyle = useAnimatedStyle(() => {
-        const input = scrollOffset.value / slideWidth;
-        const inputRange = [index - 1, index, index + 1];
-    
-        return {
-          transform: [
-            {
-              scale: interpolate(
-                input,
-                inputRange,
-                [0.8, 1, 0.8],
-                Extrapolate.CLAMP
-              ),
-            },
-          ],
-        };
-      });
+      const input = scrollOffset.value / slideWidth;
+      const inputRange = [index - 1, index, index + 1];
+
+      return {
+        transform: [
+          {
+            scale: interpolate(input, inputRange, [0.8, 1, 0.8], Extrapolate.CLAMP),
+          },
+        ],
+      };
+    });
 
     return (
       <Animated.View
@@ -205,36 +192,33 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
           },
           animatedStyle,
         ]}
-      >  
+      >
+        <View>
+          <Pressable onPress={() => removeImage(index)} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+            <Iconify icon='carbon:close-filled' size={32} color={Colors.light.text} />
+          </Pressable>
 
-      <View>
-            <Pressable onPress={() => removeImage(index)} style={{position: 'absolute',top: 10,right: 10,zIndex: 1,}}>
-                <Iconify icon='carbon:close-filled' size={32} color={Colors.light.text} />
-            </Pressable>
-            
-            <Image source={{ uri: slide }} style={styles.picker} />
-      </View>
-                       
+          <Image source={{ uri: slide }} style={styles.picker} />
+        </View>
       </Animated.View>
     );
   };
 
   const handleClose = () => {
-    if(activityState.title === '' || activityState.description === '' || activityState.photos.length === 0) showAlert()
+    if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0) showAlert();
     else {
-        setActivities(prevActivities => {
-            const newActivity = [...prevActivities]; // Create a copy of the previous array
-            newActivity[index] = activityState; // Update the value at the specified index
-            return newActivity; // Return the new array
-          });
-          setActivityState({
-            description: '',
-            title: '',
-            photos: [],
-          });
-        toggleModal();
+      setActivities((prevActivities) => {
+        const newActivity = [...prevActivities]; // Create a copy of the previous array
+        newActivity[index] = activityState; // Update the value at the specified index
+        return newActivity; // Return the new array
+      });
+      setActivityState({
+        description: '',
+        title: '',
+        photos: [],
+      });
+      toggleModal();
     }
-    
   };
 
   //Handles the indicator under the image
@@ -242,18 +226,14 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
     const animatedStyle = useAnimatedStyle(() => {
       const input = scrollOffset.value / slideWidth;
       const inputRange = [index - 1, index, index + 1];
-      const animatedColor = interpolateColor(input, inputRange, [
-        '#D9D9D9',
-        Colors.light.tint,
-        '#D9D9D9',
-      ]);
-  
+      const animatedColor = interpolateColor(input, inputRange, ['#D9D9D9', Colors.light.tint, '#D9D9D9']);
+
       return {
         width: interpolate(input, inputRange, [20, 25, 20], Extrapolate.CLAMP),
         backgroundColor: animatedColor,
       };
     });
-  
+
     return (
       <Animated.View
         style={[
@@ -283,128 +263,109 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
     return {
       transform: [
         {
-          scale: interpolate(
-            input,
-            inputRange,
-            [0.8, 1, 0.8],
-            Extrapolate.CLAMP
-          ),
+          scale: interpolate(input, inputRange, [0.8, 1, 0.8], Extrapolate.CLAMP),
         },
       ],
     };
   });
 
   return (
-    <Modal visible={isModalVisible} statusBarTranslucent={true}>
-      <SafeAreaView style={{flex: 1, display: 'flex'}}>
-        <View style= {{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+    <Modal visible={isModalVisible} statusBarTranslucent={true} style={{ backgroundColor: 'green' }}>
+      <SafeAreaView style={{ flex: 1, display: 'flex', paddingTop: topPadding }}>
+        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Pressable onPress={toggleModal}>
-            <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{marginLeft: 10, flex: 1, marginTop: 20,}} />
+            <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{ marginLeft: 10, flex: 1 }} />
           </Pressable>
 
           <Pressable onPress={handleClose}>
-            <Iconify icon='mingcute:check-fill' size={28} color={iconColor} style={{marginRight: 10, flex: 1, marginTop: 20,}} />
+            <Iconify icon='mingcute:check-fill' size={28} color={iconColor} style={{ marginRight: 15, flex: 1 }} />
           </Pressable>
         </View>
-        
+
         <View style={styles.container}>
-          <Text style={styles.title}>Title</Text>
-          
+          <Text style={styles.title}>Place</Text>
+
           <View style={styles.inputContainer}>
             <TextInput
-              placeholder='Type in a title'
+              placeholder='Type in a place'
               onChangeText={(text) => {
-                setActivityState(prevState => ({ ...prevState, title: text }));
+                setActivityState((prevState) => ({ ...prevState, title: text }));
               }}
               value={activityState.title}
               style={styles.textInput}
             />
           </View>
         </View>
-        
+
         <View style={styles.container}>
           <Text style={styles.title}>Description</Text>
-          <View style={[styles.inputContainer, {height: 80,}]}>
+          <View style={[styles.inputContainer]}>
             <TextInput
               multiline={true}
               numberOfLines={5}
               placeholder='Add a description'
               onChangeText={(text) => {
-                setActivityState(prevState => ({ ...prevState, description: text }))}}
+                setActivityState((prevState) => ({ ...prevState, description: text }));
+              }}
               value={activityState.description}
               style={styles.textInput}
             />
           </View>
-        
         </View>
-        
-      
+
         <View style={styles.container}>
           <Text style={styles.title}>Photos</Text>
           <Animated.ScrollView
-          scrollEventThrottle={1}
-          horizontal
-          snapToInterval={slideWidth}
-          decelerationRate="fast"
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            display: 'flex',
-            alignItems: "center",
-            paddingHorizontal: (width - slideWidth) / 2,
-            justifyContent: "center",
-          }}
-          onScroll={scrollHandler}
-        >
-          {activityState.photos.map((photo, index) => {
-            return (
-              <Slide
-                key={index}
-                index={index}
-                slide={photo}
-                scrollOffset={scrollOffset}
-                pickInput={false}
-              />
-            );
-          })}
+            scrollEventThrottle={1}
+            horizontal
+            snapToInterval={slideWidth}
+            decelerationRate='fast'
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              display: 'flex',
+              alignItems: 'center',
+              paddingHorizontal: (width - slideWidth) / 2,
+              justifyContent: 'center',
+            }}
+            onScroll={scrollHandler}
+          >
+            {activityState.photos.map((photo, index) => {
+              return <Slide key={index} index={index} slide={photo} scrollOffset={scrollOffset} pickInput={false} />;
+            })}
 
-          <Animated.View
+            <Animated.View
               key={activityState.photos.length}
               style={[
-              {
+                {
                   flex: 1,
                   width: slideWidth,
                   height: slideHeight,
                   paddingVertical: 10,
-              },
-              animatedStyle,
+                },
+                animatedStyle,
               ]}
-          >
+            >
               <View style={styles.picker}>
-                  <CustomButton func={pickImage} altStyle={false} text='Pick an image from camera' />
+                <CustomButton func={pickImage} altStyle={false} text='Pick an image from camera' />
               </View>
-        </Animated.View>  
-          
-        </Animated.ScrollView>
-        
-        <View style={{ flexDirection: "row", justifyContent: "center" }}>
-          {activityState.photos.map((_, index) => {
-            return (
-              <Indicator key={index} index={index} scrollOffset={scrollOffset} />
-            );
-          })}
-              <Indicator key={activityState.photos.length} index={activityState.photos.length} scrollOffset={scrollOffset} />
-        </View>
-          
+            </Animated.View>
+          </Animated.ScrollView>
 
+          <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+            {activityState.photos.map((_, index) => {
+              return <Indicator key={index} index={index} scrollOffset={scrollOffset} />;
+            })}
+            <Indicator key={activityState.photos.length} index={activityState.photos.length} scrollOffset={scrollOffset} />
+          </View>
         </View>
-    </SafeAreaView>
-    </Modal>    
+      </SafeAreaView>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 10, 
+    paddingHorizontal: 10,
   },
   title: {
     fontWeight: 'bold',
@@ -424,8 +385,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textInput: {
-    height: 30,
     paddingHorizontal: 10,
+    paddingVertical: 20,
   },
   inputContainer: {
     paddingHorizontal: 5,

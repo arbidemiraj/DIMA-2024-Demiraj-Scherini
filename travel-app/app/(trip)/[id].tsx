@@ -71,7 +71,6 @@ export default function Trip() {
         id: visit.id,
         description: visit.description,
         name: visit.name,
-        score: visit.score,
         lat: visit.lat,
         long: visit.long,
         trip_id: visit.trip_id,

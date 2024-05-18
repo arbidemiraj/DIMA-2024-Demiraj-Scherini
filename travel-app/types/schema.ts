@@ -218,7 +218,6 @@ export type Database = {
           lat: number | null
           long: number | null
           name: string
-          score: number | null
           trip_id: number
         }
         Insert: {
@@ -227,7 +226,6 @@ export type Database = {
           lat?: number | null
           long?: number | null
           name: string
-          score?: number | null
           trip_id: number
         }
         Update: {
@@ -236,7 +234,6 @@ export type Database = {
           lat?: number | null
           long?: number | null
           name?: string
-          score?: number | null
           trip_id?: number
         }
         Relationships: [

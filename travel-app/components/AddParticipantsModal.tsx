@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { Iconify } from 'react-native-iconify';
 import { supabase } from '@/lib/supabase';
 import ParticipantChipWithRemove from '@/components/ParticipantChipWithRemove';
+import { useAuth } from '@/provider/AuthProvider';
 
 /**
  * Add Participants component, used to display the modal
@@ -23,7 +24,7 @@ interface Props {
 interface User {
     id: string;
     username: string|null;
-    // Add more fields as needed
+    role: string;
   }
 
 
@@ -31,6 +32,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
   const colorScheme = useColorScheme();
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [userText, OnChangeUser] = useState<string>('');
+  const userID = useAuth().user?.id;
 
   const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
 
@@ -41,11 +43,12 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
   const handleSearch = async (text: string) => {
     try {
       OnChangeUser(text);
-
+      
       if(text !== ''){
         const { data, error } = await supabase
         .from('profile')
         .select('id, username')
+        .neq('id', userID)
         .ilike('username', `${text}%`)
         .limit(10);
 
@@ -55,6 +58,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
         const userData: User[] = data.map((user) => ({
           id: user.id,
           username : user.username,
+          role: 'participant',
         }));
 
         if (error) {

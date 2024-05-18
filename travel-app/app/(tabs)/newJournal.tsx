@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState} from 'react';
-import { Image, StyleSheet, Pressable } from 'react-native';
+import { Image, StyleSheet, Pressable, Platform, TouchableOpacity, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 import { ScrollView, Text, View, TextInput} from '@/components/Themed';
@@ -11,10 +10,18 @@ import ParticipantChip from '@/components/ParticipantChip';
 import AddParticipantsModal from '@/components/AddParticipantsModal';
 import NewActivityModal from '@/components/NewActivityModal';
 import Tooltip from 'react-native-walkthrough-tooltip';
+import { Stack } from 'expo-router';
+import React from 'react';
+import { Calendar } from 'react-native-calendars';
+import { format } from 'date-fns';
+import { Rating, AirbnbRating } from 'react-native-ratings';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/provider/AuthProvider';
 
 interface User {
   id: string;
   username: string|null;
+  role: string;
 }
 
 interface Activity {
@@ -27,11 +34,19 @@ interface TooltipContentProps {
   index: number;
 }
 
+
+interface DateObject {
+  dateString: string;
+}
+
+type CategoryKey = 'food' | 'sport' | 'nature' | 'adventure' | 'luxury' | 'roadTrip' | 'culture' | 'museum' | 'monuments' | 'wildlife';
+
+
 export default function NewJournal() {
   const [image, setImage] = useState<string>('');
   const [descriptionText, onChangeDescription] = useState<string>('');
   const [titleText, onChangeTitle] = useState<string>('');
-  const [givenStar, onChangeGivenStar] = useState<number>(0);
+  const [givenStar, onChangeGivenStar] = useState<number>(3);
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
   const [isActivityModalVisible, setActivityModalVisible] = useState<boolean>(false);
   const [isNewActivityModalVisible, setNewActivityModalVisible] = useState<boolean>(false);
@@ -41,6 +56,25 @@ export default function NewJournal() {
   const [tooltipHandlers, setTooltipHandlers] = useState<boolean[]>(Array(activities.length).fill(false));
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
+  const [tripCategories, setTripCategories] = useState<string[]>([]);
+
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [selectedDates, setSelectedDates] = useState<{startDate?: DateObject, endDate?: DateObject}>({});
+  const [dateInput, setDateInput] = useState<string>('');
+  const userID = useAuth().user?.id;
+
+  const categoryMap: Record<CategoryKey, number> = {
+    food: 1,
+    sport: 2,
+    nature: 3,
+    adventure: 4,
+    luxury: 5,
+    roadTrip: 6,
+    culture: 7,
+    museum: 8,
+    monuments: 9,
+    wildlife: 10
+  };
 
   //Handles the addition of a new activity by adding the state variable for the associated tooltip 
   useEffect(() => {
@@ -61,11 +95,6 @@ export default function NewJournal() {
   const toggleNewActivityModal = () => {
     setNewActivityModalVisible(!isNewActivityModalVisible);
   };
-  
-  const handleStar = (index: number) => {
-    if(index == givenStar) onChangeGivenStar(0);
-    else onChangeGivenStar(index);
-  }
 
   const addParticipant = (user: User) => {
     if(user.username !== null && !participants.includes(user)) setParticipants((prevParticipants) => {
@@ -87,7 +116,6 @@ export default function NewJournal() {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
-      detectLabels(result.assets[0].uri);
     }
   };
 
@@ -132,74 +160,6 @@ export default function NewJournal() {
 
   };
 
-  // Function to detect labels using Google Vision API
-  const detectLabels = async (imageUri:string) => {
-    const apiKey = 'AIzaSyCa4-rskhmT6sUv9uab7be_pI8Lw9jmHyI'; // Replace with your API key
-    const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-    
-    const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-
-    const requestData = {
-      requests: [
-        {
-          image: {
-            content: base64ImageData,
-          },
-          features: [{ type: 'LABEL_DETECTION', maxResults: 25}],
-        },
-      ],
-    };
-
-    try {
-      const response = await fetch(apiURL, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestData),
-      });
-
-      const data = await response.json();
-      const labelAnnotations = data.responses[0].labelAnnotations;
-      console.log(labelAnnotations);
-      console.log(getCategories(labelAnnotations));
-
-    } catch (error) {
-        console.error('Error detecting labels:', error);
-    }
-  };
-
-  const getCategories = (labelAnnotations:any) => {
-    let tripCategories: string[] = [];
-
-    const categories: { [key: string]: string[] } = {
-      sport: ['sports', 'exercise', 'activity', 'fitness', 'workout'],
-      nature: ['nature', 'landscape', 'outdoors', 'scenic', 'wilderness'],
-      adventure: ['adventure', 'exploration', 'journey', 'expedition', 'trekking'],
-      luxury: ['luxury', 'lavish', 'opulence', 'exclusive', 'premium'],
-      roadTrip: ['road', 'trip', 'journey', 'driving', 'travel'],
-      culture: ['culture', 'tradition', 'heritage', 'cultural', 'customs'],
-      museum: ['museum', 'exhibition', 'artifacts', 'gallery', 'historic'],
-      monuments: ['monuments', 'landmarks', 'historic sites', 'memorial', 'ruins'],
-      wildlife: ['wildlife', 'animals', 'nature reserve', 'wild', 'fauna'],
-      food: ['food', 'cuisine', 'restaurant', 'dining', 'gastronomy'],
-  };
-  
-    for (let category in categories) {
-      categories[category].forEach(label => {
-        labelAnnotations.forEach((element: { description: string; }) => {
-          if (element.description.toLowerCase() === label) {
-            tripCategories.push(category);
-          }
-        });
-      })
-    };
-
-    return tripCategories;
-  };
-
   function TooltipContent({index}: TooltipContentProps): ReactNode {
     return (
       <View style= {{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', }}>
@@ -218,9 +178,200 @@ export default function NewJournal() {
       </View>
     );
   }
+
+  const insertCategories = async (tripId : number) => {
+    try {
+      console.log('tripCategories', tripCategories);
+      
+      const { data, error } = await supabase
+        .from('trip_category')
+        .insert(tripCategories.map((category) => ({
+          category_id: categoryMap[category as CategoryKey], // Add an index signature to allow indexing with a string
+          trip_id: tripId,
+        })));
+
+      if (error) {
+        console.error('Error adding categories:', error);
+        return;
+      }
+
+      console.log('Categories added successfully');
+    } catch (error) {
+      console.error('Error adding categories:', error);
+    }
+  }
+  const insertImages = async (visitId : number, index : number) => {
+    try {
+      const { data, error } = await supabase
+        .from('image')
+        .insert(activities[index].photos.map((photo) => ({
+          visit_id: visitId,
+          url: photo,
+        })));
+
+      if (error) {
+        console.error('Error adding images:', error);
+        return;
+      }
+
+      console.log('Images added successfully');
+    } catch (error) {
+      console.error('Error adding images:', error);
+    }
+  }
   
+  const insertVisits = async (tripId : number) => {
+    try {
+      const { data, error } = await supabase
+        .from('visit')
+        .insert(activities.map((activity) => ({
+          name: activity.title,
+          description: activity.description,
+          trip_id: tripId,
+          lat: 0,
+          long: 0,
+        }))).select();
+
+      if (error) {
+        console.error('Error adding visits:', error);
+        return;
+      }
+
+      const insertedIDs = data.map((visit) => visit.id);
+      insertedIDs.map((id, index) => {insertImages(id, index)});
+
+      console.log('Visits added successfully');
+    } catch (error) {
+      console.error('Error adding visits:', error);
+    }
+  }
+
+  const insertParticipants = async (tripId : number) => {
+    try {
+      participants.push({id: userID??'', username: null, role: 'author'});
+      const { data, error } = await supabase
+        .from('profile_trip')
+        .insert(participants.map((participant) => ({
+          profile_id: participant.id,
+          trip_id: tripId,
+          role: 'participant',
+        })));
+
+      if (error) {
+        console.error('Error adding participants:', error);
+        return;
+      }
+
+      console.log('Participants added successfully');
+    } catch (error) {
+      console.error('Error adding participants:', error);
+    }
+  }
+
+  const createJournal = async () => {
+    // Add journal to database
+    if(titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0) {
+      showAlert();
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('trip')
+        .insert([{
+          cover_url: image,
+          description: descriptionText,
+          start_date: selectedDates.startDate?.dateString ?? null, 
+          end_date: selectedDates.endDate?.dateString ?? null, 
+          score: givenStar,
+          name: titleText,}])
+          .select();;
+  
+          if (error) {
+            console.error('Error creating journal:', error);
+            return;
+          }
+
+          const insertedId = data[0].id;
+          
+          insertParticipants(insertedId);
+          insertVisits(insertedId);
+          insertCategories(insertedId);
+
+          console.log('Journal created successfully');
+          
+    } catch (error) {
+      console.error('Error creating journal:', error);
+    }
+            
+  } 
+
+  const showAlert = () => {
+    Alert.alert('Error', 'Please fill all the inputs', [
+        {text: 'OK', onPress: () => console.log('OK Pressed')},
+      ]);
+  }
+
+  const onDayPress = (day: DateObject) => {
+    let updatedSelectedDates = {...selectedDates};
+
+    if (!updatedSelectedDates.startDate || (updatedSelectedDates.startDate && updatedSelectedDates.endDate) || (updatedSelectedDates.startDate && new Date(day.dateString) < new Date(updatedSelectedDates.startDate.dateString))){
+      updatedSelectedDates = {startDate: day};
+      setDateInput(format(new Date(updatedSelectedDates.startDate?.dateString ?? new Date()), 'dd MMM') + ' - ' );
+    } else if (!updatedSelectedDates.endDate) {
+      updatedSelectedDates.endDate = day;
+      setDateInput(format(new Date(updatedSelectedDates.startDate.dateString ?? new Date()), 'dd MMM') + ' - ' + format(new Date(updatedSelectedDates.endDate.dateString ?? new Date()), 'dd MMM'));
+    }
+
+    setSelectedDates(updatedSelectedDates);
+
+  };
+
+  function CreateButton(): ReactNode {
+    return (
+    <Pressable style={styles.createIcon}>
+      <Iconify icon='fluent:checkmark-circle-24-filled' size={32} color={iconColor} onPress={createJournal} />
+    </Pressable>
+    
+    );
+  }
+
+
+  const getMarkedDates = () => {
+    const markedDates: {[date: string]: {selected: boolean, startingDay?: boolean, endingDay?: boolean, color: string}} = {};
+
+    if (selectedDates.startDate) {
+      markedDates[selectedDates.startDate.dateString] = {selected: true, startingDay: true, color: 'blue'};
+    }
+
+    if (selectedDates.endDate) {
+      markedDates[selectedDates.endDate.dateString] = {selected: true, endingDay: true, color: 'blue'};
+
+      let currentDate = new Date(selectedDates.startDate?.dateString ?? new Date());
+      currentDate.setDate(currentDate.getDate() + 1);
+      const endDate = new Date(selectedDates.endDate.dateString);
+
+      while (currentDate < endDate) {
+        const dateString = format(currentDate, 'yyyy-MM-dd');
+        markedDates[dateString] = {selected: true, color: Colors.light.tint};
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+
+    return markedDates;
+  };
+
   return (
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEventThrottle={1}>
+      <Stack.Screen
+          options={{
+            headerShown: true,
+            headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background },
+            headerTitle: 'New Journal',
+            headerLeft: () => <></>,
+            headerRight: () => <CreateButton></CreateButton>,
+          }}
+        />
       <View style={styles.container}>
 
         <Text style={styles.title}>Title</Text>
@@ -239,8 +390,10 @@ export default function NewJournal() {
 
         <Text style={styles.title}>Description</Text>
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, {height: 100}]}>
           <TextInput
+            multiline={true}
+            numberOfLines={5}
             placeholder='Add a description'
             onChangeText={onChangeDescription}
             value={descriptionText}
@@ -248,26 +401,50 @@ export default function NewJournal() {
           />
         </View>
       </View>
+
+      <View style={styles.container}>
+
+        <Text style={styles.title}>Date</Text>
+
+       
+        <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={{marginRight: 30,}}>
+            <TouchableOpacity onPress={() => setShowDatePicker(!showDatePicker)}>
+              <TextInput
+                style={styles.dateInput}
+                placeholder="Select date"
+                value={dateInput}
+                editable={false}
+              />
+            </TouchableOpacity>
+            {showDatePicker && (
+            <View>
+              <Calendar
+              markingType={'period'}
+              onDayPress={onDayPress}
+              markedDates={getMarkedDates()}
+              maxDate={new Date().toISOString()}
+              />
+              <TouchableOpacity>
+                <View style={{backgroundColor: Colors.light.tint, borderRadius: 20}}>
+                <Text></Text><CustomButton func={() => setShowDatePicker(!showDatePicker)} text='Confirm' altStyle={true}/>
+                </View>
+              </TouchableOpacity>
+            </View>)}
+          </View>
+        
+        </View>
+      </View>
       
-      <View style={styles.scores}>
+      <View style={styles.container}>
 
         <Text style={styles.title}>Score</Text>
-
-        <View style={styles.stars}>
-          {[
-            ...Array(givenStar),
-          ].map((none: any, index: number) => (
-            <Pressable key={index} style={styles.star} onPress={() => handleStar(index+1)}>
-              <Iconify icon='fa-solid:star' size={28} color={colorScheme === 'light' ? Colors.light.tint : Colors.dark.tint}/>
-            </Pressable>
-          ))}
-          {[
-            ...Array(5-givenStar),
-          ].map((none: any, index: number) => (
-            <Pressable key={index} style={styles.star} onPress={() => handleStar(index+givenStar+1)}>
-              <Iconify icon='fa-regular:star' size={28} color={iconColor}/>
-            </Pressable>
-          ))}
+        <View>
+          <AirbnbRating 
+            size={24} 
+            selectedColor={Colors.light.tint}
+            reviewColor={Colors.light.tint}
+            onFinishRating={onChangeGivenStar}/>
         </View>
       </View>
       
@@ -290,23 +467,23 @@ export default function NewJournal() {
 
         <ScrollView horizontal={true} style={styles.activityContainer}>
         {activities.map((activity, index) => {
-          return (            
-            <View>     
+            return (            
+            <View key={index}>     
               <Tooltip
-                key={index}
-                closeOnContentInteraction={true}
-                isVisible={tooltipHandlers[index]}
-                content={<TooltipContent index={index}></TooltipContent>}
-                placement="center"
-                onClose={() => toggleOptionModal(index)}
+              key={index}
+              closeOnContentInteraction={true}
+              isVisible={tooltipHandlers[index]}
+              content={<TooltipContent index={index}></TooltipContent>}
+              placement="center"
+              onClose={() => toggleOptionModal(index)}
               >
-                <Pressable key={index} onLongPress={() => {
-                toggleOptionModal(index);}}>
-                  <Image key={index} source={{ uri: activity.photos[0] }} style={styles.activityImage} />
-                </Pressable>
+              <Pressable key={index} onLongPress={() => {
+              toggleOptionModal(index);}}>
+                <Image key={index} source={{ uri: activity.photos[0] }} style={styles.activityImage} />
+              </Pressable>
               </Tooltip>       
             </View>
-          );
+            );
         })}
           <View style={styles.activity}>
             <Pressable onPress={() => toggleNewActivityModal()}>
@@ -331,8 +508,8 @@ export default function NewJournal() {
       </View>
       
       <AddParticipantsModal isModalVisible={isModalVisible} toggleModal={toggleModal} participants={participants} removeParticipant={removeParticipant} addParticipant={addParticipant}></AddParticipantsModal>
-      <NewActivityModal isModalVisible={isActivityModalVisible} toggleModal={toggleActivityModal} index={activities.indexOf(selectedActivity)} activityInfos={selectedActivity} setActivities={setActivities}/>
-      <NewActivityModal isModalVisible={isNewActivityModalVisible} toggleModal={toggleNewActivityModal} index={activities.length} activityInfos={null} setActivities={setActivities}/>
+      <NewActivityModal isModalVisible={isActivityModalVisible} toggleModal={toggleActivityModal} index={activities.indexOf(selectedActivity)} activityInfos={selectedActivity} setActivities={setActivities} tripCategories={tripCategories} setCategories={setTripCategories}/>
+      <NewActivityModal isModalVisible={isNewActivityModalVisible} toggleModal={toggleNewActivityModal} index={activities.length} activityInfos={null} setActivities={setActivities} tripCategories={tripCategories} setCategories={setTripCategories}/>
 
     </ScrollView>
 
@@ -340,6 +517,36 @@ export default function NewJournal() {
 }
 
 const styles = StyleSheet.create({
+  dateInput: {
+    fontWeight: 'bold',
+    marginTop: 10,
+    height: 40,
+    borderRadius: 30,
+    marginBottom: 10,
+    width: 300,
+    textAlign: 'center',
+    backgroundColor: Colors.light.background,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  createButton: {
+    borderRadius: 20, // Border radius
+    paddingVertical: 10, // Vertical padding
+    paddingHorizontal: 20, // Horizontal padding
+    backgroundColor: 'blue', // Button background color
+  },
   activityImage: {
     height: 100,
     width: 100,
@@ -433,4 +640,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
   },
+  createIcon: 
+  {
+    marginRight: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  }
 });

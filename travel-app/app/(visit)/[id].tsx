@@ -48,7 +48,6 @@ export default function Visit() {
         lat: data.lat,
         long: data.long,
         name: data.name,
-        score: data.score,
         trip_id: data.trip_id,
         images: data.image,
       };

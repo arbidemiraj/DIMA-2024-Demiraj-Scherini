@@ -74,7 +74,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
 
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true}>
-      <SafeAreaView style={{ flex: 1, paddingTop: topPadding }}>
+      <SafeAreaView style={{ flex: 1, paddingTop: topPadding }} edges={[]}>
         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
           <Pressable onPress={toggleModal}>
             <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{ marginLeft: 10, flex: 1 }} />

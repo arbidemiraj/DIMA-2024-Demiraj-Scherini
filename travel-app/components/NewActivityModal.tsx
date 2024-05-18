@@ -271,7 +271,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true} style={{ backgroundColor: 'green' }}>
-      <SafeAreaView style={{ flex: 1, display: 'flex', paddingTop: topPadding }}>
+      <SafeAreaView style={{ flex: 1, display: 'flex', paddingTop: topPadding }} edges={[]}>
         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Pressable onPress={toggleModal}>
             <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{ marginLeft: 10, flex: 1 }} />

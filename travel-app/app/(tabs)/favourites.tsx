@@ -33,12 +33,12 @@ export default function Favourites() {
       const keys = await AsyncStorage.getAllKeys();
       const result = await AsyncStorage.multiGet(keys);
 
-      const filteredResult = result.filter(([key, value]) => {
+      const filteredResult = result.filter(([key, value]:[string, string]) => {
         // Check if value is not null and is equal to "true"
         return value !== null && JSON.parse(value) === true;
       });
 
-      const filteredIds = filteredResult.map(([key, value]) => parseInt(key));
+      const filteredIds = filteredResult.map(([key, value]:[string, string]) => parseInt(key));
 
       const { data, error } = await supabase.from('trip').select(`*, category(*), profile_trip(role, profile(*))`).in('id', filteredIds).order('id');
 
@@ -46,7 +46,6 @@ export default function Favourites() {
 
       if (!data || data.length === 0) {
         //setTrips([]);
-        console.log('Trips:' + trips);
       } else {
         const tripDetailsData: TripDetails[] = data.map((trip) => ({
           id: trip.id,

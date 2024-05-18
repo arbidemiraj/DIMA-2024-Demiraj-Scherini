@@ -45,6 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='newJournal'
         options={{
+          headerShown: false,
           title: 'New Journal',
           headerTitleAlign: 'center',
           tabBarIcon: ({ color }) => <TabBarIcon name='plus' color={color} />,

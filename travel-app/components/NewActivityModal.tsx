@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import { Image, StyleSheet, Pressable, Modal, useColorScheme, Dimensions, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/Colors';
 import { View, Text, ScrollView, TextInput, SafeAreaView} from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
@@ -15,6 +16,7 @@ import Animated, {
     interpolateColor,
     Extrapolate,
   } from "react-native-reanimated";
+import GooglePlacesInput from './GooglePlacesInput';
   
 const { width } = Dimensions.get("screen");
 
@@ -30,6 +32,8 @@ interface Props {
   activityInfos: Activity|null;
   index: number,
   setActivities: SetStateFunction<Activity[]>;
+  setCategories: SetStateFunction<string[]>; 
+  tripCategories: string[];
 }
 
 interface Activity {
@@ -38,7 +42,7 @@ interface Activity {
     photos: string[],
 }
 
-export default function NewActivityModal({isModalVisible, toggleModal, index, activityInfos, setActivities,} : Props) {
+export default function NewActivityModal({isModalVisible, toggleModal, index, activityInfos, setActivities, setCategories, tripCategories} : Props) {
   const [image, setImage] = useState<string>('');
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
@@ -76,11 +80,84 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+      detectLabels(result.assets[0].uri);
+      
       setActivityState(prevState => ({
         ...prevState,
         photos: [...prevState.photos, result.assets[0].uri],
       }));
     }
+  };
+  
+  // Function to detect labels using Google Vision API
+  const detectLabels = async (imageUri:string) => {
+      const apiKey = 'AIzaSyCa4-rskhmT6sUv9uab7be_pI8Lw9jmHyI'; // Replace with your API key
+      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+      
+      const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+  
+      const requestData = {
+        requests: [
+          {
+            image: {
+              content: base64ImageData,
+            },
+            features: [{ type: 'LABEL_DETECTION', maxResults: 25}],
+          },
+        ],
+      };
+  
+      try {
+        const response = await fetch(apiURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+  
+        const data = await response.json();
+        const labelAnnotations = data.responses[0].labelAnnotations;
+        getCategories(labelAnnotations);
+
+      } catch (error) {
+          console.error('Error detecting labels:', error);
+      }
+  };
+
+  const getCategories = (labelAnnotations:any) => {
+    let tripCategories: string[] = [];
+
+    const categories: { [key: string]: string[] } = {
+      sport: ['sports', 'sport', 'exercise', 'activity', 'fitness', 'workout', 'gym', 'running', 'swimming', 'yoga', 'cycling'],
+      nature: ['nature', 'landscape', 'outdoors', 'scenic', 'wilderness', 'mountain', 'forest', 'beach', 'park', 'waterfall'],
+      adventure: ['adventure', 'exploration', 'journey', 'expedition', 'trekking', 'hiking', 'climbing', 'rafting', 'skydiving', 'bungee jumping'],
+      luxury: ['luxury', 'lavish', 'opulence', 'exclusive', 'premium', 'high-end', 'fancy', 'elegant', 'champagne', 'limousine'],
+      roadTrip: ['road trip', 'journey', 'driving', 'travel', 'car', 'motorcycle', 'campervan', 'route', 'exploring'],
+      culture: ['culture', 'tradition', 'heritage', 'cultural', 'customs', 'art', 'music', 'dance', 'festival', 'ceremony'],
+      museum: ['museum', 'exhibition', 'artifacts', 'gallery', 'historic', 'painting', 'sculpture', 'archaeology', 'history', 'collection'],
+      monuments: ['monuments', 'landmarks', 'historic sites', 'memorial', 'ruins', 'statue', 'castle', 'temple', 'palace', 'tower'],
+      wildlife: ['wildlife', 'animals', 'nature reserve', 'wild', 'fauna', 'safari', 'birdwatching', 'zoo', 'national park', 'conservation'],
+      food: ['food', 'cuisine', 'restaurant', 'dining', 'gastronomy', 'cooking', 'chef', 'foodie', 'delicious', 'tasting'],
+    };
+  
+    for (let category in categories) {
+      categories[category].forEach(label => {
+        labelAnnotations.forEach((element: { description: string; }) => {
+          if (element.description.toLowerCase() === label && !tripCategories.includes(category)) {
+            tripCategories.push(category);
+          }
+        });
+      })
+    };
+
+    setCategories((prevCategories) => {
+
+        return [...prevCategories, ...tripCategories];
+    });
+
   };
 
   const removeImage = (indexToRemove: number) =>  {
@@ -92,7 +169,7 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
 
   const showAlert = () => {
     Alert.alert('Error', 'Please fill all the inputs', [
-        {text: 'OK', onPress: () => console.log('OK Pressed')},
+        {text: 'OK'},
       ]);
    }
 
@@ -219,9 +296,8 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
 
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true}>
-      <ScrollView style={{flex: 1}} snapToAlignment={'start'} scrollEventThrottle={1}>
-
-        <SafeAreaView style= {{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+      <SafeAreaView style={{flex: 1, display: 'flex'}}>
+        <View style= {{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
           <Pressable onPress={toggleModal}>
             <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{marginLeft: 10, flex: 1, marginTop: 20,}} />
           </Pressable>
@@ -229,15 +305,17 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
           <Pressable onPress={handleClose}>
             <Iconify icon='mingcute:check-fill' size={28} color={iconColor} style={{marginRight: 10, flex: 1, marginTop: 20,}} />
           </Pressable>
-        </SafeAreaView>
-      
+        </View>
+        
         <View style={styles.container}>
           <Text style={styles.title}>Title</Text>
           
           <View style={styles.inputContainer}>
             <TextInput
               placeholder='Type in a title'
-              onChangeText={(text) => setActivityState(prevState => ({ ...prevState, title: text }))}
+              onChangeText={(text) => {
+                setActivityState(prevState => ({ ...prevState, title: text }));
+              }}
               value={activityState.title}
               style={styles.textInput}
             />
@@ -246,10 +324,13 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
         
         <View style={styles.container}>
           <Text style={styles.title}>Description</Text>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, {height: 80,}]}>
             <TextInput
+              multiline={true}
+              numberOfLines={5}
               placeholder='Add a description'
-              onChangeText={(text) => setActivityState(prevState => ({ ...prevState, description: text }))}
+              onChangeText={(text) => {
+                setActivityState(prevState => ({ ...prevState, description: text }))}}
               value={activityState.description}
               style={styles.textInput}
             />
@@ -305,7 +386,7 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
           
         </Animated.ScrollView>
         
-        <View style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}>
+        <View style={{ flexDirection: "row", justifyContent: "center" }}>
           {activityState.photos.map((_, index) => {
             return (
               <Indicator key={index} index={index} scrollOffset={scrollOffset} />
@@ -316,20 +397,14 @@ export default function NewActivityModal({isModalVisible, toggleModal, index, ac
           
 
         </View>
-    </ScrollView>
+    </SafeAreaView>
     </Modal>    
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingHorizontal: 10,
-    marginTop: 10, 
-  },
-  item: {
-    flex: 1,
-    width: '100%',
+    paddingHorizontal: 10, 
   },
   title: {
     fontWeight: 'bold',
@@ -349,11 +424,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textInput: {
-    flex: 1,
-    borderRadius: 30,
     height: 30,
     paddingHorizontal: 10,
-    marginTop: 10,
   },
   inputContainer: {
     paddingHorizontal: 5,
@@ -361,5 +433,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     borderBottomColor: '#737373',
     marginBottom: 20,
+    marginTop: 10,
   },
 });

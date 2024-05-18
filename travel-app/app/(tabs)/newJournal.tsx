@@ -420,7 +420,7 @@ export default function NewJournal() {
       <View style={styles.container}>
         <Text style={styles.title}>Score</Text>
         <View>
-          <AirbnbRating size={24} selectedColor={Colors.light.tint} reviewColor={Colors.light.tint} onFinishRating={onChangeGivenStar} />
+          {/*<AirbnbRating size={24} selectedColor={Colors.light.tint} reviewColor={Colors.light.tint} onFinishRating={onChangeGivenStar} />*/}
         </View>
       </View>
 

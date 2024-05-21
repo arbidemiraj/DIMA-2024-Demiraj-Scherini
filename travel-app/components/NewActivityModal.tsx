@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Pressable, Modal, useColorScheme, Dimensions, Alert } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Image, StyleSheet, Pressable, Modal, useColorScheme, Dimensions, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/Colors';
@@ -8,16 +8,15 @@ import { Iconify } from 'react-native-iconify';
 import CustomButton from '@/components/CustomButton';
 import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
 
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, interpolate, interpolateColor, Extrapolate } from 'react-native-reanimated';
-import GooglePlacesInput from './GooglePlacesInput';
 import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('screen');
 
-const textColor = '#2A3B38';
-const slideWidth = width * 0.9;
-const slideHeight = 350;
+const slideWidth = width * 0.7;
+const slideHeight = 380;
 
 type SetStateFunction<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -31,22 +30,34 @@ interface Props {
   tripCategories: string[];
 }
 
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
 interface Activity {
   title: string;
   description: string;
   photos: string[];
+  coordinates?: Coordinates;
 }
 
 export default function NewActivityModal({ isModalVisible, toggleModal, index, activityInfos, setActivities, setCategories, tripCategories }: Props) {
   const [image, setImage] = useState<string>('');
-  const colorScheme = useColorScheme();
-  const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
+
+  const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
+  const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+  const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
+
   const isFocused = useIsFocused();
   const [activityState, setActivityState] = useState<Activity>({
     description: '',
     title: '',
     photos: [],
   });
+
+  const autocompleteRef = useRef<GooglePlacesAutocompleteRef>(null); 
+  const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
 
   // calculate the top padding for the modal
   const topPadding = useSafeAreaInsets().top;
@@ -66,6 +77,29 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
       });
     }
   }, [activityInfos, isFocused]);
+
+  const handlePlacePress = (data: any, details: any = null) => {   
+    console.log(data);
+    const text = autocompleteRef.current?.getAddressText() ?? '';
+
+    setActivityState((prevState) => ({
+      ...prevState,
+      title: text,
+    }));
+    
+    autocompleteRef.current?.render; // Close the dropdown menu after selecting a place
+    if (details) {
+      // Clear the input field after selecting a place
+      const { lat, lng } = details.geometry.location;
+      console.log(lat, lng);
+
+      setActivityState((prevState) => ({
+        ...prevState,
+        coordinates: { latitude: lat, longitude: lng },
+      }));
+
+    } 
+  };
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
@@ -277,37 +311,75 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
   });
 
   return (
-    <Modal visible={isModalVisible} statusBarTranslucent={true} style={{ backgroundColor: 'green' }}>
-      <SafeAreaView style={{ flex: 1, display: 'flex', paddingHorizontal: 10, paddingTop: topPadding }} edges={[]}>
+    <Modal visible={isModalVisible} style={{ backgroundColor: 'green' }} transparent={true}>
+      <SafeAreaView style={{ flex: 1, display: 'flex', paddingHorizontal: 10, paddingTop: topPadding }} edges={['']}>
         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Pressable onPress={toggleModal}>
-            <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{ marginLeft: 10, flex: 1 }} />
+            <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 10, flex: 1 }} />
           </Pressable>
 
           <Pressable onPress={handleClose}>
-            <Iconify icon='mingcute:check-fill' size={28} color={iconColor} style={{ marginRight: 15, flex: 1 }} />
+            <Iconify icon='mingcute:check-fill' size={28} color={textColor} style={{ marginRight: 15, flex: 1 }} />
           </Pressable>
         </View>
 
-        <View style={styles.container}>
+        <View style={styles.section}>
           <Text style={styles.title}>Place</Text>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              placeholder='Type in a place'
-              onChangeText={(text) => {
-                setActivityState((prevState) => ({ ...prevState, title: text }));
+          <GooglePlacesAutocomplete
+              placeholder='Type in a place...'
+              enablePoweredByContainer={false}
+              listViewDisplayed={false}
+              keepResultsAfterBlur={true}
+              ref={autocompleteRef}
+              fetchDetails={true}
+              query={{key: 'AIzaSyC7Qjn3MKrk9I9MVcgRHqWdaPhYhwz4QZ8'}}
+              onPress={handlePlacePress}
+              onFail={(error) => console.log(error)}
+              onNotFound={() => console.log('no results')}
+              textInputProps={{
+                placeholderTextColor: textColor,
               }}
-              value={activityState.title}
-              style={styles.textInput}
+              styles={{
+                container: {
+                  flex: 0,
+                  marginVertical: 10, 
+                  paddingVertical: 10,
+                  backgroundColor: 'transparent',
+                },
+                description: {
+                  color: textColor,
+                  fontSize: 16,
+                },
+                textInputContainer: {
+                  backgroundColor: 'transparent',
+                  borderBottomWidth: 1,
+                  borderColor: separatorColor,
+                },
+                textInput: {
+                  backgroundColor: 'transparent',
+                  color: textColor,
+                },
+                predefinedPlacesDescription: {
+                  color: textColor,
+                },
+                row: {
+                  backgroundColor: backgroundColor, // Dropdown menu color
+                },
+                poweredContainer: {
+                  backgroundColor: backgroundColor, // Background color of 'powered by Google' row
+                },
+              }}
             />
-          </View>
+          
         </View>
+        
 
-        <View style={styles.container}>
+        <View style={styles.section}>
           <Text style={styles.title}>Description</Text>
-          <View style={[styles.inputContainer]}>
-            <TextInput
+          <View style={{ borderBottomWidth: 1, marginVertical: 10, paddingVertical: 10 }}>
+            <TextInput 
+              style={{ color: textColor, fontSize: 16, paddingHorizontal: 10,}}
               multiline={true}
               numberOfLines={5}
               placeholder='Add a description'
@@ -315,14 +387,14 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
                 setActivityState((prevState) => ({ ...prevState, description: text }));
               }}
               value={activityState.description}
-              style={styles.textInput}
             />
           </View>
         </View>
 
-        <View style={styles.container}>
+        <View style={styles.section}>
           <Text style={styles.title}>Photos</Text>
           <Animated.ScrollView
+            nestedScrollEnabled={true}
             scrollEventThrottle={1}
             horizontal
             snapToInterval={slideWidth}
@@ -375,10 +447,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   title: {
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 20,
-    paddingHorizontal: 10,
-    marginTop: 20,
+  },
+  section: {
+    paddingVertical: 15,
+    marginHorizontal: 20,
+    justifyContent: 'center',
   },
   picker: {
     backgroundColor: '#D9D9D9',
@@ -386,18 +461,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: '100%',
     resizeMode: 'cover',
-    zIndex: 0,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  textInput: {
-    paddingVertical: 10,
-  },
-  inputContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#737373',
-    marginBottom: 20,
-    marginTop: 10,
   },
 });

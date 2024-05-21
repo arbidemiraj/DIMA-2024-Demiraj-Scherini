@@ -13,10 +13,13 @@ import Tooltip from 'react-native-walkthrough-tooltip';
 import { Stack } from 'expo-router';
 import React from 'react';
 import { Calendar } from 'react-native-calendars';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import { Rating, AirbnbRating } from 'react-native-ratings';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
+import Toast, {BaseToast} from 'react-native-toast-message';
 
 interface User {
   id: string;
@@ -59,6 +62,7 @@ export default function NewJournal() {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<{ startDate?: DateObject; endDate?: DateObject }>({});
   const [dateInput, setDateInput] = useState<string>('');
+  const [insertedTripId, setInsertedTripId] = useState<number>(0); // Store the inserted trip ID for future use
   const userID = useAuth().user?.id;
 
   const categoryMap: Record<CategoryKey, number> = {
@@ -180,138 +184,121 @@ export default function NewJournal() {
     );
   }
 
-  const insertCategories = async (tripId: number) => {
+
+  const uploadImages = async (visitId: number, photos: string[]) => {
     try {
-      console.log('tripCategories', tripCategories);
-
-      const { data, error } = await supabase.from('trip_category').insert(
-        tripCategories.map((category) => ({
-          category_id: categoryMap[category as CategoryKey], // Add an index signature to allow indexing with a string
-          trip_id: tripId,
-        }))
-      );
-
-      if (error) {
-        console.error('Error adding categories:', error);
-        return;
+      const paths: string[] = [];
+  
+      for (const photo of photos) {
+        const base64 = await FileSystem.readAsStringAsync(photo, { encoding: 'base64' });
+        const ext = photo.split('.').pop();
+        const filePath = `${userID}/${new Date().getTime()}.${ext}`;
+  
+        const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
+  
+        if (storageError) {
+          throw storageError;
+        }
+  
+        const { data, error } = await supabase.from('image').insert(
+          { visit_id: visitId, url: storageData.path }
+        );
+  
+        if (error) {
+          throw error;
+        }
+  
+        paths.push(storageData.path);
       }
-
-      console.log('Categories added successfully');
+  
+      console.log('Images uploaded successfully:', paths);
     } catch (error) {
-      console.error('Error adding categories:', error);
+      console.error('Error uploading images:', error);
+      throw error; // Propagate the error to handle it in createJournal
     }
   };
-  const insertImages = async (visitId: number, index: number) => {
+  
+  const deleteTrip = async (tripId: number) => {
     try {
-      const { data, error } = await supabase.from('image').insert(
-        activities[index].photos.map((photo) => ({
-          visit_id: visitId,
-          url: photo,
-        }))
-      );
-
-      if (error) {
-        console.error('Error adding images:', error);
-        return;
-      }
-
-      console.log('Images added successfully');
+      await supabase.from('trip').delete().eq('id', tripId);
+      console.log('Trip deleted successfully:', tripId);
     } catch (error) {
-      console.error('Error adding images:', error);
-    }
-  };
-
-  const insertVisits = async (tripId: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('visit')
-        .insert(
-          activities.map((activity) => ({
-            name: activity.title,
-            description: activity.description,
-            trip_id: tripId,
-            lat: 0,
-            long: 0,
-          }))
-        )
-        .select();
-
-      if (error) {
-        console.error('Error adding visits:', error);
-        return;
-      }
-
-      const insertedIDs = data.map((visit) => visit.id);
-      insertedIDs.map((id, index) => {
-        insertImages(id, index);
-      });
-
-      console.log('Visits added successfully');
-    } catch (error) {
-      console.error('Error adding visits:', error);
-    }
-  };
-
-  const insertParticipants = async (tripId: number) => {
-    try {
-      participants.push({ id: userID ?? '', username: null, role: 'author' });
-      const { data, error } = await supabase.from('profile_trip').insert(
-        participants.map((participant) => ({
-          profile_id: participant.id,
-          trip_id: tripId,
-          role: 'participant',
-        }))
-      );
-
-      if (error) {
-        console.error('Error adding participants:', error);
-        return;
-      }
-
-      console.log('Participants added successfully');
-    } catch (error) {
-      console.error('Error adding participants:', error);
+      console.error('Error deleting trip:', tripId, error);
     }
   };
 
   const createJournal = async () => {
-    // Add journal to database
-    if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0) {
-      showAlert();
+    if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0 || activities.length == 0) {
+      Toast.show({
+        type: 'error',
+        position: 'top',
+        text1: 'Error',
+        text2: 'Please fill all the inputs',
+        visibilityTime: 1500,
+        autoHide: true,
+      });
       return;
     }
-
+  
     try {
-      const { data, error } = await supabase
-        .from('trip')
-        .insert([
-          {
-            cover_url: image,
-            description: descriptionText,
-            start_date: selectedDates.startDate?.dateString ?? null,
-            end_date: selectedDates.endDate?.dateString ?? null,
-            score: givenStar,
-            name: titleText,
-          },
-        ])
-        .select();
-
+      //@ts-ignore
+      const { data, error } = await supabase.rpc('create_journal_func2', {
+        title_text: titleText,
+        description_text: descriptionText,
+        start_date: selectedDates.startDate?.dateString ?? null,
+        end_date: selectedDates.endDate?.dateString ?? null,
+        image_url: image,
+        given_star: givenStar,
+        user_id: userID, // Assuming user_id is being converted correctly
+        activities: activities.map(activity => ({
+          title: activity.title,
+          description: activity.description,
+          photos: activity.photos, // Assuming `photos` is an array of photo URLs
+        })),
+        trip_categories: tripCategories.map(category => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
+        participants: participants,
+      });
+  
       if (error) {
         console.error('Error creating journal:', error);
         return;
       }
+  
+      // The returned trip_id
+      setInsertedTripId(data);
 
-      const insertedId = data[0].id;
+      // Fetch visit IDs created for this trip
+      const { data: visitData, error: visitError } = await supabase
+        .from('visit')
+        .select('id')
+        .eq('trip_id', insertedTripId);
+  
+      //Change function to return also the visits if needed
 
-      insertParticipants(insertedId);
-      insertVisits(insertedId);
-      insertCategories(insertedId);
-
-      console.log('Journal created successfully');
+      if (visitError) {
+        console.error('Error fetching visits:', visitError);
+        await deleteTrip(insertedTripId);
+        return;
+      }
+  
+      const visitPromises = visitData.map((visit, index) => {
+        return uploadImages(visit.id, activities[index].photos); // Upload images for each visit
+      });
+  
+      await Promise.all(visitPromises); // Ensure all image uploads complete
+  
+      console.log('Journal created successfully with trip_id:', insertedTripId);
     } catch (error) {
-      console.error('Error creating journal:', error);
-    }
-  };
+      console.error('Error creating journal or uploading images:', error);
+  
+      // If there's an error, delete the trip and associated records
+      if (error) {
+          await deleteTrip(insertedTripId);
+        }
+      }
+}
+  
+  
 
   const showAlert = () => {
     Alert.alert('Error', 'Please fill all the inputs', [{ text: 'OK', onPress: () => console.log('OK Pressed') }]);
@@ -378,6 +365,7 @@ export default function NewJournal() {
           headerRight: () => <CreateButton></CreateButton>,
         }}
       />
+
       <View style={styles.container}>
         <Text style={styles.title}>Title</Text>
 
@@ -509,6 +497,8 @@ export default function NewJournal() {
         tripCategories={tripCategories}
         setCategories={setTripCategories}
       />
+
+      <Toast/>
     </ScrollView>
   );
 }

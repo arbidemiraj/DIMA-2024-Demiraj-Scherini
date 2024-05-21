@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, interpolate, interpolateColor, Extrapolate } from 'react-native-reanimated';
 import GooglePlacesInput from './GooglePlacesInput';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('screen');
 
@@ -161,10 +162,6 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     }));
   };
 
-  const showAlert = () => {
-    Alert.alert('Error', 'Please fill all the inputs', [{ text: 'OK' }]);
-  };
-
   //Handles the single component for the slideshow
   const Slide = ({ slide, scrollOffset, index }: any) => {
     const animatedStyle = useAnimatedStyle(() => {
@@ -200,12 +197,22 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
           <Image source={{ uri: slide }} style={styles.picker} />
         </View>
+        <Toast />
       </Animated.View>
     );
   };
 
   const handleClose = () => {
-    if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0) showAlert();
+    if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0){
+      Toast.show({
+        type: 'error',
+        position: 'top',
+        text1: 'Error',
+        text2: 'Please fill all the inputs',
+        visibilityTime: 1500,
+        autoHide: true,
+      });
+    } 
     else {
       setActivities((prevActivities) => {
         const newActivity = [...prevActivities]; // Create a copy of the previous array
@@ -271,7 +278,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true} style={{ backgroundColor: 'green' }}>
-      <SafeAreaView style={{ flex: 1, display: 'flex', paddingTop: topPadding }} edges={[]}>
+      <SafeAreaView style={{ flex: 1, display: 'flex', paddingHorizontal: 10, paddingTop: topPadding }} edges={[]}>
         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Pressable onPress={toggleModal}>
             <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{ marginLeft: 10, flex: 1 }} />
@@ -385,13 +392,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textInput: {
-    paddingHorizontal: 10,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   inputContainer: {
-    paddingHorizontal: 5,
     borderBottomWidth: 1,
-    marginLeft: 10,
     borderBottomColor: '#737373',
     marginBottom: 20,
     marginTop: 10,

@@ -26,3 +26,8 @@ export type CommentDetails = {
   commentContent: Comment['comment'];
   user: Profile['username'];
 };
+
+export type CategoryKey = 
+'food' | 'sport' | 'nature' | 
+'adventure' | 'luxury' | 'roadTrip' | 
+'culture' | 'museum' | 'monuments' | 'wildlife';

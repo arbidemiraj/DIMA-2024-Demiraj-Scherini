@@ -13,10 +13,14 @@ import Tooltip from 'react-native-walkthrough-tooltip';
 import { Stack } from 'expo-router';
 import React from 'react';
 import { Calendar } from 'react-native-calendars';
-import { format } from 'date-fns';
-import { Rating, AirbnbRating } from 'react-native-ratings';
+import { format, set } from 'date-fns';
+import StarRating from 'react-native-star-rating-widget';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
+import Toast, {BaseToast} from 'react-native-toast-message';
+import { CategoryKey } from '@/types/types';
 
 interface User {
   id: string;
@@ -28,6 +32,7 @@ interface Activity {
   title: string;
   description: string;
   photos: string[];
+  coordinates?: Coordinates;
 }
 
 interface TooltipContentProps {
@@ -38,7 +43,10 @@ interface DateObject {
   dateString: string;
 }
 
-type CategoryKey = 'food' | 'sport' | 'nature' | 'adventure' | 'luxury' | 'roadTrip' | 'culture' | 'museum' | 'monuments' | 'wildlife';
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
 
 export default function NewJournal() {
   const [image, setImage] = useState<string>('');
@@ -52,13 +60,16 @@ export default function NewJournal() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity>({ title: '', description: '', photos: [] });
   const [tooltipHandlers, setTooltipHandlers] = useState<boolean[]>(Array(activities.length).fill(false));
-  const colorScheme = useColorScheme();
-  const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
+  
+  const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
+  const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+
   const [tripCategories, setTripCategories] = useState<string[]>([]);
 
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<{ startDate?: DateObject; endDate?: DateObject }>({});
   const [dateInput, setDateInput] = useState<string>('');
+  const [insertedTripId, setInsertedTripId] = useState<number>(0); // Store the inserted trip ID for future use
   const userID = useAuth().user?.id;
 
   const categoryMap: Record<CategoryKey, number> = {
@@ -119,25 +130,6 @@ export default function NewJournal() {
     }
   };
 
-  /*const uploadImage = async (imageUri:string) => {
-    try {
-        const { data, error } = await supabase.storage
-            .from('images')
-            .upload(`image_${Date.now()}`, imageUri);
-
-        if (error) {
-            console.error('Error uploading image:', error.message);
-
-            return;
-        }
-
-        setImage(imageUri);
-        detectLabels(imageUri);
-    } catch (error) {
-        console.log(error);
-    }
-  };*/
-
   const toggleOptionModal = (index: number) => {
     const updated = [...tooltipHandlers];
     updated[index] = !updated[index];
@@ -164,7 +156,7 @@ export default function NewJournal() {
       <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         {/*TODO DELETE ACTIVITY*/}
         <Pressable onPress={() => deleteActivity(index)}>
-          <Iconify icon='material-symbols:delete' size={34} color={iconColor} style={{ flex: 1, marginRight: 30 }} />
+          <Iconify icon='material-symbols:delete' size={34} color={textColor} style={{ flex: 1, marginRight: 30 }} />
         </Pressable>
 
         <Pressable
@@ -174,144 +166,144 @@ export default function NewJournal() {
             toggleActivityModal();
           }}
         >
-          <Iconify icon='flowbite:edit-outline' size={34} color={iconColor} style={{ flex: 1 }} />
+          <Iconify icon='flowbite:edit-outline' size={34} color={textColor} style={{ flex: 1 }} />
         </Pressable>
       </View>
     );
   }
 
-  const insertCategories = async (tripId: number) => {
+
+  const uploadImages = async (visitId: number, photos: string[]) => {
     try {
-      console.log('tripCategories', tripCategories);
+      const paths: string[] = [];
+  
+      for (const photo of photos) {
+        const base64 = await FileSystem.readAsStringAsync(photo, { encoding: 'base64' });
+        const ext = photo.split('.').pop();
+        const filePath = `${userID}/${new Date().getTime()}.${ext}`;
+  
+        const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
+  
+        if (storageError) {
+          throw storageError;
+        }
+  
+        const { data, error } = await supabase.from('image').insert(
+          { visit_id: visitId, url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path }
+        );
 
-      const { data, error } = await supabase.from('trip_category').insert(
-        tripCategories.map((category) => ({
-          category_id: categoryMap[category as CategoryKey], // Add an index signature to allow indexing with a string
-          trip_id: tripId,
-        }))
-      );
+        console.log(data);
 
-      if (error) {
-        console.error('Error adding categories:', error);
-        return;
+        console.log(storageData);
+  
+        if (error) {
+          throw error;
+        }
+  
+        paths.push(storageData.path);
       }
-
-      console.log('Categories added successfully');
+  
+      console.log('Images uploaded successfully:', paths);
     } catch (error) {
-      console.error('Error adding categories:', error);
+      console.error('Error uploading images:', error);
+      throw error; // Propagate the error to handle it in createJournal
     }
   };
-  const insertImages = async (visitId: number, index: number) => {
+  
+  const deleteTrip = async (tripId: number) => {
     try {
-      const { data, error } = await supabase.from('image').insert(
-        activities[index].photos.map((photo) => ({
-          visit_id: visitId,
-          url: photo,
-        }))
-      );
-
-      if (error) {
-        console.error('Error adding images:', error);
-        return;
-      }
-
-      console.log('Images added successfully');
+      await supabase.from('trip').delete().eq('id', tripId);
+      console.log('Trip deleted successfully:', tripId);
     } catch (error) {
-      console.error('Error adding images:', error);
-    }
-  };
-
-  const insertVisits = async (tripId: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('visit')
-        .insert(
-          activities.map((activity) => ({
-            name: activity.title,
-            description: activity.description,
-            trip_id: tripId,
-            lat: 0,
-            long: 0,
-          }))
-        )
-        .select();
-
-      if (error) {
-        console.error('Error adding visits:', error);
-        return;
-      }
-
-      const insertedIDs = data.map((visit) => visit.id);
-      insertedIDs.map((id, index) => {
-        insertImages(id, index);
-      });
-
-      console.log('Visits added successfully');
-    } catch (error) {
-      console.error('Error adding visits:', error);
-    }
-  };
-
-  const insertParticipants = async (tripId: number) => {
-    try {
-      participants.push({ id: userID ?? '', username: null, role: 'author' });
-      const { data, error } = await supabase.from('profile_trip').insert(
-        participants.map((participant) => ({
-          profile_id: participant.id,
-          trip_id: tripId,
-          role: 'participant',
-        }))
-      );
-
-      if (error) {
-        console.error('Error adding participants:', error);
-        return;
-      }
-
-      console.log('Participants added successfully');
-    } catch (error) {
-      console.error('Error adding participants:', error);
+      console.error('Error deleting trip:', tripId, error);
     }
   };
 
   const createJournal = async () => {
-    // Add journal to database
-    if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0) {
-      showAlert();
+    if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0 || activities.length == 0) {
+      Toast.show({
+        type: 'error',
+        position: 'top',
+        text1: 'Error',
+        text2: 'Please fill all the inputs',
+        visibilityTime: 1500,
+        autoHide: true,
+      });
       return;
+    }
+    
+    const base64 = await FileSystem.readAsStringAsync(image, { encoding: 'base64' });
+    const ext = image.split('.').pop();
+    const filePath = `${userID}/${new Date().getTime()}.${ext}`;
+  
+    const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
+
+    if (storageError) {
+      throw storageError;
     }
 
     try {
-      const { data, error } = await supabase
-        .from('trip')
-        .insert([
-          {
-            cover_url: image,
-            description: descriptionText,
-            start_date: selectedDates.startDate?.dateString ?? null,
-            end_date: selectedDates.endDate?.dateString ?? null,
-            score: givenStar,
-            name: titleText,
-          },
-        ])
-        .select();
-
+      //@ts-ignore
+      const { data, error } = await supabase.rpc('create_journal_rpc', {
+        title_text: titleText,
+        description_text: descriptionText,
+        start_date: selectedDates.startDate?.dateString ?? null,
+        end_date: selectedDates.endDate?.dateString ?? null,
+        image_url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path,
+        given_star: givenStar,
+        user_id: userID, // Assuming user_id is being converted correctly
+        activities: activities.map(activity => ({
+          title: activity.title,
+          description: activity.description,
+          photos: activity.photos,
+          lat: activity.coordinates?.latitude,
+          long: activity.coordinates?.longitude // Assuming `photos` is an array of photo URLs
+        })),
+        trip_categories: tripCategories.map(category => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
+        participants: participants,
+      });
+  
       if (error) {
         console.error('Error creating journal:', error);
         return;
       }
+  
+      // The returned trip_id
+      setInsertedTripId(data);
+      console.log(data);
 
-      const insertedId = data[0].id;
+      // Fetch visit IDs created for this trip
+      const { data: visitData, error: visitError } = await supabase
+        .from('visit')
+        .select('id')
+        .eq('trip_id', data);
+  
+      //Change function to return also the visits if needed
 
-      insertParticipants(insertedId);
-      insertVisits(insertedId);
-      insertCategories(insertedId);
-
-      console.log('Journal created successfully');
+      if (visitError) {
+        console.error('Error fetching visits:', visitError);
+        await deleteTrip(insertedTripId);
+        return;
+      }
+  
+      const visitPromises = visitData.map((visit, index) => {
+        return uploadImages(visit.id, activities[index].photos); // Upload images for each visit
+      });
+  
+      await Promise.all(visitPromises); // Ensure all image uploads complete
+  
+      console.log('Journal created successfully with trip_id:', insertedTripId);
     } catch (error) {
-      console.error('Error creating journal:', error);
-    }
-  };
+      console.error('Error creating journal or uploading images:', error);
+  
+      // If there's an error, delete the trip and associated records
+      if (error) {
+          await deleteTrip(insertedTripId);
+        }
+      }
+}
+  
+  
 
   const showAlert = () => {
     Alert.alert('Error', 'Please fill all the inputs', [{ text: 'OK', onPress: () => console.log('OK Pressed') }]);
@@ -338,7 +330,7 @@ export default function NewJournal() {
   function CreateButton(): ReactNode {
     return (
       <Pressable style={styles.createIcon}>
-        <Iconify icon='fluent:checkmark-circle-24-filled' size={32} color={iconColor} onPress={createJournal} />
+        <Iconify icon='mingcute:check-fill' size={32} color={textColor} onPress={createJournal} />
       </Pressable>
     );
   }
@@ -372,42 +364,42 @@ export default function NewJournal() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerStyle: { backgroundColor: colorScheme === 'light' ? Colors.light.background : Colors.dark.background },
+          headerStyle: { backgroundColor: backgroundColor },
           headerTitle: 'New Journal',
           headerLeft: () => <></>,
           headerRight: () => <CreateButton></CreateButton>,
         }}
       />
-      <View style={styles.container}>
+
+      <View style={styles.section}>
         <Text style={styles.title}>Title</Text>
 
-        <View style={styles.inputContainer}>
-          <TextInput placeholder='Type in a title' onChangeText={onChangeTitle} value={titleText} style={styles.textInput} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10,}}>
+          <TextInput placeholder='Type in a title' onChangeText={onChangeTitle} value={titleText}/>
         </View>
       </View>
 
-      <View style={styles.container}>
+      <View style={styles.section}>
         <Text style={styles.title}>Description</Text>
-
-        <View style={[styles.inputContainer, { height: 100 }]}>
-          <TextInput multiline={true} numberOfLines={5} placeholder='Add a description' onChangeText={onChangeDescription} value={descriptionText} style={styles.textInput} />
+        
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <TextInput multiline={true} numberOfLines={5} placeholder='Add a description' onChangeText={onChangeDescription} value={descriptionText} />
         </View>
       </View>
 
-      <View style={styles.container}>
+      <View style={{paddingVertical: 15, marginHorizontal: 20,}}>
         <Text style={styles.title}>Date</Text>
 
         <View style={{ flex: 1, flexDirection: 'row' }}>
           <View style={{ marginRight: 30 }}>
-            <Pressable style={styles.dateInput} onPress={() => setShowDatePicker(!showDatePicker)}>
-              {({ pressed }) => <Text style={{ opacity: pressed ? 0.5 : 1 }}>{dateInput ? dateInput : 'Select a Date'}</Text>}
+            <Pressable style={[styles.dateInput, {backgroundColor: '#fff'}]} onPress={() => setShowDatePicker(!showDatePicker)}>
+              {({ pressed }) => <Text style={{ color: '#000', opacity: pressed ? 0.5 : 1 }}>{dateInput ? dateInput : 'Select a Date'}</Text>}
             </Pressable>
             {showDatePicker && (
               <View>
                 <Calendar markingType={'period'} onDayPress={onDayPress} markedDates={getMarkedDates()} maxDate={new Date().toISOString()} />
                 <TouchableOpacity>
-                  <View style={{ backgroundColor: Colors.light.tint, borderRadius: 20 }}>
-                    <Text></Text>
+                  <View style={{ backgroundColor: Colors.light.tint}}>
                     <CustomButton func={() => setShowDatePicker(!showDatePicker)} text='Confirm' altStyle={true} />
                   </View>
                 </TouchableOpacity>
@@ -417,14 +409,20 @@ export default function NewJournal() {
         </View>
       </View>
 
-      <View style={styles.container}>
+      <View style={{paddingVertical: 15, marginHorizontal: 20}}>
         <Text style={styles.title}>Score</Text>
-        <View>
+        <View style={{marginTop: 10}}>
+        <StarRating
+          rating={givenStar}
+          onChange={onChangeGivenStar}
+          color={textColor}
+          starSize={50}
+        />
           {/*<AirbnbRating size={24} selectedColor={Colors.light.tint} reviewColor={Colors.light.tint} onFinishRating={onChangeGivenStar} />*/}
         </View>
       </View>
 
-      <View style={styles.container}>
+      <View style={{paddingVertical: 15, marginHorizontal: 20}}>
         <Text style={styles.title}>Cover Image</Text>
 
         {!image ? (
@@ -432,11 +430,17 @@ export default function NewJournal() {
             <CustomButton func={pickImage} altStyle={false} text='Pick an image from camera' />
           </View>
         ) : (
-          <Image source={{ uri: image }} style={styles.picker} />
+          <View>
+             <Pressable onPress={() => setImage('')} style={{ position: 'absolute', top: 15, right: 10, zIndex: 1 }}>
+            <Iconify icon='carbon:close-filled' size={32} color={backgroundColor} />
+            </Pressable>
+            <Image source={{ uri: image }} style={styles.picker} />
+          </View>
+          
         )}
       </View>
 
-      <View style={styles.container}>
+      <View style={{paddingVertical: 15, marginHorizontal: 20,}}>
         <Text style={styles.title}>Activities</Text>
 
         <ScrollView horizontal={true} style={styles.activityContainer}>
@@ -465,13 +469,13 @@ export default function NewJournal() {
           })}
           <View style={styles.activity}>
             <Pressable onPress={() => toggleNewActivityModal()}>
-              <Iconify icon='basil:add-solid' size={34} color={iconColor} />
+              <Iconify icon='basil:add-solid' size={34} color={textColor} />
             </Pressable>
           </View>
         </ScrollView>
       </View>
 
-      <View style={styles.container}>
+      <View style={{paddingVertical: 15, marginHorizontal: 20}}>
         <Text style={styles.title}>Participants</Text>
 
         <View style={{ marginVertical: 20 }}>
@@ -509,25 +513,26 @@ export default function NewJournal() {
         tripCategories={tripCategories}
         setCategories={setTripCategories}
       />
+
+      <Toast/>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
   dateInput: {
     marginTop: 10,
-    padding: 20,
     borderRadius: 30,
     marginBottom: 10,
-    width: '100%',
-    backgroundColor: Colors.light.background,
+    padding: 15,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
       },
@@ -536,25 +541,22 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  createButton: {
-    borderRadius: 20, // Border radius
-    paddingVertical: 10, // Vertical padding
-    paddingHorizontal: 20, // Horizontal padding
-    backgroundColor: 'blue', // Button background color
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  section: {
+    paddingVertical: 15,
+    marginHorizontal: 20,
+    borderBottomWidth: 1,
   },
   activityImage: {
-    height: 100,
-    width: 100,
+    height: 120,
+    width: 120,
     marginRight: 25,
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 30,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 10,
-    marginTop: 10,
   },
   item: {
     flex: 1,
@@ -563,38 +565,16 @@ const styles = StyleSheet.create({
   activity: {
     backgroundColor: '#D9D9D9',
     borderRadius: 30,
-    height: 100,
-    width: 100,
+    height: 120,
+    width: 120,
     marginRight: 25,
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   activityContainer: {
-    display: 'flex',
     flexDirection: 'row',
     marginLeft: 10,
     padding: 10,
-  },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 20,
-    paddingHorizontal: 10,
-    marginTop: 20,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-    elevation: 5, // for Android shadow
   },
   picker: {
     marginTop: 10,
@@ -604,45 +584,13 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    display: 'flex',
-  },
-  textInput: {
-    flex: 1,
-    borderRadius: 30,
-    height: 30,
-    paddingHorizontal: 10,
-    marginTop: 10,
-  },
-  inputContainer: {
-    paddingHorizontal: 5,
-    borderBottomWidth: 1,
-    marginLeft: 10,
-    borderBottomColor: '#737373',
-    marginBottom: 20,
-  },
-  star: {
-    marginRight: 5,
-  },
-  stars: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginTop: 15,
-  },
-  scores: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
   },
   createIcon: {
     marginRight: 10,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
       },

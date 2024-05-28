@@ -37,6 +37,8 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
   const topPadding = useSafeAreaInsets().top;
 
   const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
+  const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
+  const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
   useEffect(() => {
     if (userText == '') setSearchResults([]);
@@ -93,7 +95,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
-                <Iconify icon='iconoir:user' size={28} color={'#000'} />
+                <Iconify icon='iconoir:user' size={28} color={iconColor} />
                 <Pressable
                   onPress={() => {
                     if (item.username) OnChangeUser(item.username);
@@ -103,7 +105,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
                 </Pressable>
                 {/* Display other user information as needed */}
                 <Pressable onPress={() => addParticipant(item)}>
-                  <Iconify icon='gala:add' size={22} color={'#000'} style={{ alignSelf: 'flex-end' }} />
+                  <Iconify icon='gala:add' size={22} color={iconColor} style={{ alignSelf: 'flex-end' }} />
                 </Pressable>
               </View>
             )}

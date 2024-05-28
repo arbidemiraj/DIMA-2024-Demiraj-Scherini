@@ -80,19 +80,33 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
   // Handles when a place is selected from the dropdown menu
   const handlePlacePress = (data: any, details: any = null) => {   
-    console.log(data);
     const text = autocompleteRef.current?.getAddressText() ?? '';
 
-    setActivityState((prevState) => ({
-      ...prevState,
-      title: text,
-    }));
-    
-    autocompleteRef.current?.render; // Close the dropdown menu after selecting a place
     if (details) {
+      const mainText = data.structured_formatting.main_text;
+
+      // Extract locality and country from address components
+      const addressComponents = details.address_components;
+      const localityComponent = addressComponents.find((component: { types: string | string[]; }) => 
+        component.types.includes('locality')
+      );
+      const countryComponent = addressComponents.find((component: { types: string | string[]; }) => 
+        component.types.includes('country')
+      );
+
+      const locality = localityComponent ? localityComponent.long_name : '';
+      const country = countryComponent ? countryComponent.long_name : '';
+
+      // Format as main_text, locality, Country
+      const formattedPlaceName = `${mainText}${locality ? `, ${locality}` : ''}${country ? `, ${country}` : ''}`;
+
+      setActivityState((prevState) => ({
+        ...prevState,
+        title: formattedPlaceName,
+      }));
+      
       // Clear the input field after selecting a place
       const { lat, lng } = details.geometry.location;
-      console.log(lat, lng);
 
       setActivityState((prevState) => ({
         ...prevState,

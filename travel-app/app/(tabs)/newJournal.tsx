@@ -61,9 +61,7 @@ export default function NewJournal() {
   const [selectedActivity, setSelectedActivity] = useState<Activity>({ title: '', description: '', photos: [] });
   const [tooltipHandlers, setTooltipHandlers] = useState<boolean[]>(Array(activities.length).fill(false));
   
-
   const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
-  const tintColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
   const [tripCategories, setTripCategories] = useState<string[]>([]);
@@ -132,25 +130,6 @@ export default function NewJournal() {
     }
   };
 
-  /*const uploadImage = async (imageUri:string) => {
-    try {
-        const { data, error } = await supabase.storage
-            .from('images')
-            .upload(`image_${Date.now()}`, imageUri);
-
-        if (error) {
-            console.error('Error uploading image:', error.message);
-
-            return;
-        }
-
-        setImage(imageUri);
-        detectLabels(imageUri);
-    } catch (error) {
-        console.log(error);
-    }
-  };*/
-
   const toggleOptionModal = (index: number) => {
     const updated = [...tooltipHandlers];
     updated[index] = !updated[index];
@@ -196,8 +175,6 @@ export default function NewJournal() {
 
   const uploadImages = async (visitId: number, photos: string[]) => {
     try {
-      console.log(visitId);
-
       const paths: string[] = [];
   
       for (const photo of photos) {
@@ -254,7 +231,17 @@ export default function NewJournal() {
       });
       return;
     }
+    
+    const base64 = await FileSystem.readAsStringAsync(image, { encoding: 'base64' });
+    const ext = image.split('.').pop();
+    const filePath = `${userID}/${new Date().getTime()}.${ext}`;
   
+    const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
+
+    if (storageError) {
+      throw storageError;
+    }
+
     try {
       //@ts-ignore
       const { data, error } = await supabase.rpc('create_journal_rpc', {
@@ -262,7 +249,7 @@ export default function NewJournal() {
         description_text: descriptionText,
         start_date: selectedDates.startDate?.dateString ?? null,
         end_date: selectedDates.endDate?.dateString ?? null,
-        image_url: image,
+        image_url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path,
         given_star: givenStar,
         user_id: userID, // Assuming user_id is being converted correctly
         activities: activities.map(activity => ({
@@ -533,17 +520,19 @@ export default function NewJournal() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
   dateInput: {
     marginTop: 10,
     borderRadius: 30,
     marginBottom: 10,
+    padding: 15,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
       },
@@ -562,9 +551,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   activityImage: {
-    height: 100,
-    width: 100,
-    display: 'flex',
+    height: 120,
+    width: 120,
+    marginRight: 25,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 30,
@@ -579,12 +568,10 @@ const styles = StyleSheet.create({
     height: 120,
     width: 120,
     marginRight: 25,
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   activityContainer: {
-    display: 'flex',
     flexDirection: 'row',
     marginLeft: 10,
     padding: 10,
@@ -597,17 +584,13 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    display: 'flex',
   },
   createIcon: {
     marginRight: 10,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
       },

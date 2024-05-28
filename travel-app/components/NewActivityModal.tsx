@@ -15,8 +15,8 @@ import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('screen');
 
-const slideWidth = width * 0.7;
-const slideHeight = 380;
+const slideWidth = width * 0.75;
+const slideHeight = 350;
 
 type SetStateFunction<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -78,6 +78,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     }
   }, [activityInfos, isFocused]);
 
+  // Handles when a place is selected from the dropdown menu
   const handlePlacePress = (data: any, details: any = null) => {   
     console.log(data);
     const text = autocompleteRef.current?.getAddressText() ?? '';
@@ -101,6 +102,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     } 
   };
 
+  // Function to pick an image from the device's gallery
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -151,13 +153,14 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
       });
 
       const data = await response.json();
-      const labelAnnotations = data.responses[0].labelAnnotations;
-      getCategories(labelAnnotations);
+      const labelAnnotations = data.responses[0].labelAnnotations; 
+      getCategories(labelAnnotations); // Get the categories from the detected labels
     } catch (error) {
       console.error('Error detecting labels:', error);
     }
   };
 
+  // Function to get the categories from the detected labels
   const getCategories = (labelAnnotations: any) => {
     let tripCategories: string[] = [];
 
@@ -189,6 +192,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     });
   };
 
+  // Function to remove an image from the slideshow
   const removeImage = (indexToRemove: number) => {
     setActivityState((prevState) => ({
       ...prevState,
@@ -196,7 +200,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     }));
   };
 
-  //Handles the single component for the slideshow
+  // Function to display the images in the slideshow
   const Slide = ({ slide, scrollOffset, index }: any) => {
     const animatedStyle = useAnimatedStyle(() => {
       const input = scrollOffset.value / slideWidth;
@@ -236,6 +240,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     );
   };
 
+  // Function to close the modal
   const handleClose = () => {
     if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0){
       Toast.show({

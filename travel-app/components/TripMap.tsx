@@ -19,9 +19,10 @@ interface Props {
   visits: VisitDetails[];
   isMapFullScreen: boolean;
   handleFullScreen: () => void;
+  scrollEnabled: boolean;
 }
 
-const TripMap = ({ setScrollEnabled, visits, handleFullScreen, isMapFullScreen }: Props) => {
+const TripMap = ({ setScrollEnabled, scrollEnabled, visits, handleFullScreen, isMapFullScreen }: Props) => {
   const [region, setRegion] = useState<Region>();
   const [markers, setMarkers] = useState<VisitDetails[]>([]);
   const mapRef = useRef<MapView>(null);
@@ -73,7 +74,7 @@ const TripMap = ({ setScrollEnabled, visits, handleFullScreen, isMapFullScreen }
   return (
     <View style={styles.mapContainer}>
       <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-        <MapView style={styles.map} ref={mapRef} region={region} zoomEnabled={true} scrollEnabled={true} loadingEnabled={true} onMapReady={handleMapReady} onTouchStart={handleMapTouch} onTouchEnd={handleMapRelease}>
+        <MapView style={styles.map} ref={mapRef} region={region} zoomEnabled={true} scrollEnabled={true} loadingEnabled={true} onMapReady={handleMapReady} onTouchStart={handleMapTouch} onTouchCancel={handleMapRelease} onTouchEndCapture={handleMapRelease}>
           {markers.map((marker, index) => (
             <Marker key={index} coordinate={{ latitude: marker.lat, longitude: marker.long }} title={marker.name}></Marker>
           ))}

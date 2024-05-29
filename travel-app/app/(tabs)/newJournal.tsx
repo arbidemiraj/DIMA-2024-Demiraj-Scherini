@@ -227,7 +227,7 @@ export default function NewJournal() {
     if (storageError) {
       throw storageError;
     }
-
+    
     try {
       //@ts-ignore
       const { data, error } = await supabase.rpc('create_journal_rpc', {

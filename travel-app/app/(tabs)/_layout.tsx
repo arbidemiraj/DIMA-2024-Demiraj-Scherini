@@ -14,7 +14,7 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['nam
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
+  
   return (
     <Tabs
       screenOptions={{
@@ -48,6 +48,7 @@ export default function TabLayout() {
           headerShown: false,
           title: 'New Journal',
           headerTitleAlign: 'center',
+          unmountOnBlur: true,
           tabBarIcon: ({ color }) => <TabBarIcon name='plus' color={color} />,
         }}
       />

@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/provider/AuthProvider';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
-import Toast, {BaseToast} from 'react-native-toast-message';
+import Toast, { BaseToast } from 'react-native-toast-message';
 import { CategoryKey } from '@/types/types';
 
 interface User {
@@ -60,7 +60,7 @@ export default function NewJournal() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity>({ title: '', description: '', photos: [] });
   const [tooltipHandlers, setTooltipHandlers] = useState<boolean[]>(Array(activities.length).fill(false));
-  
+
   const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
@@ -172,44 +172,41 @@ export default function NewJournal() {
     );
   }
 
-
   const uploadImages = async (visitId: number, photos: string[]) => {
     try {
       const paths: string[] = [];
-  
+
       for (const photo of photos) {
         const base64 = await FileSystem.readAsStringAsync(photo, { encoding: 'base64' });
         const ext = photo.split('.').pop();
         const filePath = `${userID}/${new Date().getTime()}.${ext}`;
-  
+
         const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
-  
+
         if (storageError) {
           throw storageError;
         }
-  
-        const { data, error } = await supabase.from('image').insert(
-          { visit_id: visitId, url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path }
-        );
+
+        const { data, error } = await supabase.from('image').insert({ visit_id: visitId, url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path });
 
         console.log(data);
 
         console.log(storageData);
-  
+
         if (error) {
           throw error;
         }
-  
+
         paths.push(storageData.path);
       }
-  
+
       console.log('Images uploaded successfully:', paths);
     } catch (error) {
       console.error('Error uploading images:', error);
       throw error; // Propagate the error to handle it in createJournal
     }
   };
-  
+
   const deleteTrip = async (tripId: number) => {
     try {
       await supabase.from('trip').delete().eq('id', tripId);
@@ -231,11 +228,11 @@ export default function NewJournal() {
       });
       return;
     }
-    
+
     const base64 = await FileSystem.readAsStringAsync(image, { encoding: 'base64' });
     const ext = image.split('.').pop();
     const filePath = `${userID}/${new Date().getTime()}.${ext}`;
-  
+
     const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
 
     if (storageError) {
@@ -252,32 +249,29 @@ export default function NewJournal() {
         image_url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path,
         given_star: givenStar,
         user_id: userID, // Assuming user_id is being converted correctly
-        activities: activities.map(activity => ({
+        activities: activities.map((activity) => ({
           title: activity.title,
           description: activity.description,
           photos: activity.photos,
           lat: activity.coordinates?.latitude,
-          long: activity.coordinates?.longitude // Assuming `photos` is an array of photo URLs
+          long: activity.coordinates?.longitude, // Assuming `photos` is an array of photo URLs
         })),
-        trip_categories: tripCategories.map(category => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
+        trip_categories: tripCategories.map((category) => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
         participants: participants,
       });
-  
+
       if (error) {
         console.error('Error creating journal:', error);
         return;
       }
-  
+
       // The returned trip_id
       setInsertedTripId(data);
       console.log(data);
 
       // Fetch visit IDs created for this trip
-      const { data: visitData, error: visitError } = await supabase
-        .from('visit')
-        .select('id')
-        .eq('trip_id', data);
-  
+      const { data: visitData, error: visitError } = await supabase.from('visit').select('id').eq('trip_id', data);
+
       //Change function to return also the visits if needed
 
       if (visitError) {
@@ -285,25 +279,23 @@ export default function NewJournal() {
         await deleteTrip(insertedTripId);
         return;
       }
-  
+
       const visitPromises = visitData.map((visit, index) => {
         return uploadImages(visit.id, activities[index].photos); // Upload images for each visit
       });
-  
+
       await Promise.all(visitPromises); // Ensure all image uploads complete
-  
+
       console.log('Journal created successfully with trip_id:', insertedTripId);
     } catch (error) {
       console.error('Error creating journal or uploading images:', error);
-  
+
       // If there's an error, delete the trip and associated records
       if (error) {
-          await deleteTrip(insertedTripId);
-        }
+        await deleteTrip(insertedTripId);
       }
-}
-  
-  
+    }
+  };
 
   const showAlert = () => {
     Alert.alert('Error', 'Please fill all the inputs', [{ text: 'OK', onPress: () => console.log('OK Pressed') }]);
@@ -374,32 +366,32 @@ export default function NewJournal() {
       <View style={styles.section}>
         <Text style={styles.title}>Title</Text>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10,}}>
-          <TextInput placeholder='Type in a title' onChangeText={onChangeTitle} value={titleText}/>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+          <TextInput placeholder='Type in a title' onChangeText={onChangeTitle} value={titleText} />
         </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.title}>Description</Text>
-        
+
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <TextInput multiline={true} numberOfLines={5} placeholder='Add a description' onChangeText={onChangeDescription} value={descriptionText} />
         </View>
       </View>
 
-      <View style={{paddingVertical: 15, marginHorizontal: 20,}}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Date</Text>
 
         <View style={{ flex: 1, flexDirection: 'row' }}>
           <View style={{ marginRight: 30 }}>
-            <Pressable style={[styles.dateInput, {backgroundColor: '#fff'}]} onPress={() => setShowDatePicker(!showDatePicker)}>
+            <Pressable style={[styles.dateInput, { backgroundColor: '#fff' }]} onPress={() => setShowDatePicker(!showDatePicker)}>
               {({ pressed }) => <Text style={{ color: '#000', opacity: pressed ? 0.5 : 1 }}>{dateInput ? dateInput : 'Select a Date'}</Text>}
             </Pressable>
             {showDatePicker && (
               <View>
                 <Calendar markingType={'period'} onDayPress={onDayPress} markedDates={getMarkedDates()} maxDate={new Date().toISOString()} />
                 <TouchableOpacity>
-                  <View style={{ backgroundColor: Colors.light.tint}}>
+                  <View style={{ backgroundColor: Colors.light.tint }}>
                     <CustomButton func={() => setShowDatePicker(!showDatePicker)} text='Confirm' altStyle={true} />
                   </View>
                 </TouchableOpacity>
@@ -409,20 +401,15 @@ export default function NewJournal() {
         </View>
       </View>
 
-      <View style={{paddingVertical: 15, marginHorizontal: 20}}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Score</Text>
-        <View style={{marginTop: 10}}>
-        <StarRating
-          rating={givenStar}
-          onChange={onChangeGivenStar}
-          color={textColor}
-          starSize={50}
-        />
+        <View style={{ marginTop: 10 }}>
+          <StarRating rating={givenStar} onChange={onChangeGivenStar} color={textColor} starSize={50} />
           {/*<AirbnbRating size={24} selectedColor={Colors.light.tint} reviewColor={Colors.light.tint} onFinishRating={onChangeGivenStar} />*/}
         </View>
       </View>
 
-      <View style={{paddingVertical: 15, marginHorizontal: 20}}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Cover Image</Text>
 
         {!image ? (
@@ -431,16 +418,15 @@ export default function NewJournal() {
           </View>
         ) : (
           <View>
-             <Pressable onPress={() => setImage('')} style={{ position: 'absolute', top: 15, right: 10, zIndex: 1 }}>
-            <Iconify icon='carbon:close-filled' size={32} color={backgroundColor} />
+            <Pressable onPress={() => setImage('')} style={{ position: 'absolute', top: 15, right: 10, zIndex: 1 }}>
+              <Iconify icon='carbon:close-filled' size={32} color={backgroundColor} />
             </Pressable>
             <Image source={{ uri: image }} style={styles.picker} />
           </View>
-          
         )}
       </View>
 
-      <View style={{paddingVertical: 15, marginHorizontal: 20,}}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Activities</Text>
 
         <ScrollView horizontal={true} style={styles.activityContainer}>
@@ -475,7 +461,7 @@ export default function NewJournal() {
         </ScrollView>
       </View>
 
-      <View style={{paddingVertical: 15, marginHorizontal: 20}}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Participants</Text>
 
         <View style={{ marginVertical: 20 }}>
@@ -514,7 +500,7 @@ export default function NewJournal() {
         setCategories={setTripCategories}
       />
 
-      <Toast/>
+      <Toast />
     </ScrollView>
   );
 }

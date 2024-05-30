@@ -262,9 +262,9 @@ export default function Trip() {
         <View style={styles.section}>
           <Text style={styles.title}>Itinerary</Text>
         </View>
-        {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
+        {visits && <TripMap scrollEnabled={scrollEnabled} setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
         <Modal visible={isMapFullScreen} statusBarTranslucent={true}>
-          {visits && <TripMap setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
+          {visits && <TripMap scrollEnabled={scrollEnabled} setScrollEnabled={setScrollEnabled} visits={visits} handleFullScreen={handleFullScreen} isMapFullScreen={isMapFullScreen} />}
         </Modal>
       </View>
     </ScrollView>

@@ -27,22 +27,19 @@ interface Coordinates {
 
 interface Props {
     setActivityState: SetStateFunction<Activity>;
-    setCategories: SetStateFunction<string[]>;
+    addCategories: (categories:string[]) => void;
     activityState: Activity;
 }
 
-export default function ImageSlide({setActivityState, activityState, setCategories} : Props) {
+export default function ImageSlide({setActivityState, activityState, addCategories} : Props) {
     const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+    const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
 
     const setImage = (imageUri: string) => {
       setActivityState((prevState) => ({
         ...prevState,
         photos: [...prevState.photos, imageUri],
       }));
-    }
-
-    const addCategories = (categories: string[]) => {
-      setCategories(prevCategories => [...prevCategories, ...categories]);
     }
 
     // Function to remove an image from the slideshow
@@ -96,7 +93,7 @@ export default function ImageSlide({setActivityState, activityState, setCategori
     const animatedStyle = useAnimatedStyle(() => {
       const input = scrollOffset.value / slideWidth;
       const inputRange = [index - 1, index, index + 1];
-      const animatedColor = interpolateColor(input, inputRange, ['#D9D9D9', Colors.light.tint, '#D9D9D9']);
+      const animatedColor = interpolateColor(input, inputRange, [separatorColor, textColor, separatorColor]);
 
       return {
         width: interpolate(input, inputRange, [20, 25, 20], Extrapolate.CLAMP),
@@ -174,7 +171,7 @@ export default function ImageSlide({setActivityState, activityState, setCategori
             </Animated.View>
           </Animated.ScrollView>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 50,}}>
             {activityState.photos.map((_, index) => {
               return <Indicator key={index} index={index} scrollOffset={scrollOffset} />;
             })}

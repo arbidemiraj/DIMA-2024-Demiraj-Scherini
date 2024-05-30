@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 // Function to get the categories from the detected labels
 const getCategories = (labelAnnotations: any, addCategories: (categories:string[]) => void) => {
@@ -80,7 +81,13 @@ export const handlePickImage = async (setImage: (imageUri: string) => void, addC
     });
   
     if (!result.canceled) {
-        setImage(result.assets[0].uri);
+        const compressedImage = await ImageManipulator.manipulateAsync(
+          result.assets[0].uri,
+          [{ resize: { width: 800 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        setImage(compressedImage.uri);
 
         detectLabels(result.assets[0].uri, addCategories); // Detect labels from the picked image
     }

@@ -21,8 +21,7 @@ interface Props {
   activityInfos: Activity | null;
   index: number;
   setActivities: SetStateFunction<Activity[]>;
-  setCategories: SetStateFunction<string[]>;
-  tripCategories: string[];
+  addCategories: (categories:string[]) => void;
 }
 
 interface Coordinates {
@@ -37,7 +36,7 @@ interface Activity {
   coordinates?: Coordinates;
 }
 
-export default function NewActivityModal({ isModalVisible, toggleModal, index, activityInfos, setActivities, setCategories, tripCategories }: Props) {
+export default function NewActivityModal({ isModalVisible, toggleModal, index, activityInfos, setActivities, addCategories }: Props) {
   const [image, setImage] = useState<string>('');
 
   const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
@@ -144,7 +143,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
   
 
   return (
-    <Modal visible={isModalVisible} style={{ backgroundColor: 'green' }} transparent={true}>
+    <Modal visible={isModalVisible} transparent={true}>
       <ScrollView style={{ flex: 1, display: 'flex', paddingHorizontal: 10, paddingTop: topPadding }} keyboardShouldPersistTaps={'always'} nestedScrollEnabled={true}>
         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Pressable onPress={toggleModal}>
@@ -226,7 +225,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
         <View style={styles.section}>
           <Text style={styles.title}>Photos</Text>
-          <ImageSlide setActivityState={setActivityState} activityState={activityState} setCategories={setCategories}/>
+          <ImageSlide setActivityState={setActivityState} activityState={activityState} addCategories={addCategories}/>
           
         </View>
       </ScrollView>

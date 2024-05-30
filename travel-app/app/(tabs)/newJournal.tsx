@@ -20,6 +20,8 @@ import Toast from 'react-native-toast-message';
 import { CategoryKey } from '@/types/types';
 import { handlePickImage } from '@/components/handlePickImage';
 import CalendarInput from '@/components/CalendarInput';
+import UploadModal from '@/components/UploadModal';
+import { set } from 'date-fns';
 
 interface User {
   id: string;
@@ -68,6 +70,9 @@ export default function NewJournal() {
   const [selectedDates, setSelectedDates] = useState<{ startDate?: DateObject; endDate?: DateObject }>({});
 
   const [insertedTripId, setInsertedTripId] = useState<number>(0); // Store the inserted trip ID for future use
+  const [loadingUpload, setLoadingUpload] = useState<boolean>(false); // Loading state for image upload
+  const [modalUpload, setModalUpload] = useState<boolean>(false); // Modal state for image upload
+  const [uploadProgress, setUploadProgress] = useState<number>(0); // Progress of image upload
 
   const userID = useAuth().user?.id;
   const router = useRouter();
@@ -108,7 +113,13 @@ export default function NewJournal() {
   };
 
   const addCategories = (categories: string[]) => {
-    setTripCategories((prevCategories) => [...prevCategories, ...categories]);
+    console.log(tripCategories);
+
+    for (const category of categories) {
+      if (!tripCategories.includes(category)) {
+        setTripCategories((prevCategories) => [...prevCategories, category]);
+      }
+    }
   };
 
   const addParticipant = (user: User) => {
@@ -213,6 +224,9 @@ export default function NewJournal() {
       showAlert();
     }
 
+    setModalUpload(true);
+    setLoadingUpload(true);
+
     const base64 = await FileSystem.readAsStringAsync(image, { encoding: 'base64' });
     const ext = image.split('.').pop();
     const filePath = `${userID}/${new Date().getTime()}.${ext}`;
@@ -270,9 +284,13 @@ export default function NewJournal() {
 
       await Promise.all(visitPromises); // Ensure all image uploads complete
 
-      showUploadingAlert();
-
       console.log('Journal created successfully with trip_id:', insertedTripId);
+      setLoadingUpload(false);
+
+      setTimeout(() => {
+        setModalUpload(false);
+        router.replace(''); // Redirect to home screen
+      }, 1000);
     } catch (error) {
       console.error('Error creating journal or uploading images:', error);
 
@@ -422,8 +440,7 @@ export default function NewJournal() {
         index={activities.indexOf(selectedActivity)}
         activityInfos={selectedActivity}
         setActivities={setActivities}
-        tripCategories={tripCategories}
-        setCategories={setTripCategories}
+        addCategories={addCategories}
       />
       <NewActivityModal
         isModalVisible={isNewActivityModalVisible}
@@ -431,9 +448,10 @@ export default function NewJournal() {
         index={activities.length}
         activityInfos={null}
         setActivities={setActivities}
-        tripCategories={tripCategories}
-        setCategories={setTripCategories}
+        addCategories={addCategories}
       />
+
+      <UploadModal loading={loadingUpload} isModalVisible={modalUpload} />
 
       <Toast />
     </ScrollView>

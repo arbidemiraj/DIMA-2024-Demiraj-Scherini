@@ -34,6 +34,7 @@ export default function Visit() {
   );
 
   const getVisit = async () => {
+    if (!id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('id', id).single();
@@ -62,6 +63,7 @@ export default function Visit() {
   };
 
   const getComments = async () => {
+    if (!id) return;
     try {
       const { data, error } = await supabase.from('comment').select(`*, profile(*)`).eq('visit_id', id);
 

@@ -35,7 +35,7 @@ export default function TripList({ trips, isLoading, handleEndReached }: Props) 
       ListFooterComponent={renderFooter}
       // These attributes handle infinite scrolling
       onEndReached={handleEndReached}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={0.3}
       //TODO: address responsiveness
       //numColumns={numColumns}
     />

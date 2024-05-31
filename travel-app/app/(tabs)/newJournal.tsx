@@ -67,7 +67,6 @@ export default function NewJournal() {
 
   const [tripCategories, setTripCategories] = useState<string[]>([]);
 
-
   const [selectedDates, setSelectedDates] = useState<{ startDate?: DateObject; endDate?: DateObject }>({});
 
   const [insertedTripId, setInsertedTripId] = useState<number>(0); // Store the inserted trip ID for future use
@@ -101,7 +100,6 @@ export default function NewJournal() {
     setTooltipHandlers(updated);
   }, [activities]);
 
-
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
@@ -119,10 +117,10 @@ export default function NewJournal() {
 
     for (const category of categories) {
       if (!tripCategories.includes(category)) {
-        setTripCategories(prevCategories => [...prevCategories, category]);
+        setTripCategories((prevCategories) => [...prevCategories, category]);
       }
     }
-  }
+  };
 
   const addParticipant = (user: User) => {
     if (user.username !== null && !participants.includes(user))
@@ -180,30 +178,30 @@ export default function NewJournal() {
   const uploadImages = async (visitId: number, photos: string[], userID: string) => {
     try {
       const imageInsertData: { visit_id: number; url: string }[] = [];
-  
+
       const uploadPromises = photos.map(async (photo) => {
         const base64 = await FileSystem.readAsStringAsync(photo, { encoding: 'base64' });
         const ext = photo.split('.').pop();
         const filePath = `${userID}/${Date.now()}.${ext}`;
-  
+
         const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: `image/${ext}` });
-  
+
         if (storageError) {
           throw storageError;
         }
-  
+
         const imageUrl = `https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/${storageData.path}`;
         imageInsertData.push({ visit_id: visitId, url: imageUrl });
       });
-  
+
       await Promise.all(uploadPromises);
-  
+
       const { data, error } = await supabase.from('image').insert(imageInsertData);
-  
+
       if (error) {
         throw error;
       }
-  
+
       console.log('Images uploaded successfully');
     } catch (error) {
       console.error('Error uploading images:', error);
@@ -239,7 +237,7 @@ export default function NewJournal() {
     if (storageError) {
       throw storageError;
     }
-    
+
     try {
       //@ts-ignore
       const { data, error } = await supabase.rpc('create_journal_rpc', {
@@ -250,14 +248,14 @@ export default function NewJournal() {
         image_url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path,
         given_star: givenStar,
         user_id: userID, // Assuming user_id is being converted correctly
-        activities: activities.map(activity => ({
+        activities: activities.map((activity) => ({
           title: activity.title,
           description: activity.description,
           photos: activity.photos,
           lat: activity.coordinates?.latitude,
-          long: activity.coordinates?.longitude // Assuming `photos` is an array of photo URLs
+          long: activity.coordinates?.longitude, // Assuming `photos` is an array of photo URLs
         })),
-        trip_categories: tripCategories.map(category => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
+        trip_categories: tripCategories.map((category) => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
         participants: participants,
       });
 
@@ -271,10 +269,7 @@ export default function NewJournal() {
       console.log(data);
 
       // Fetch visit IDs created for this trip
-      const { data: visitData, error: visitError } = await supabase
-        .from('visit')
-        .select('id')
-        .eq('trip_id', data);
+      const { data: visitData, error: visitError } = await supabase.from('visit').select('id').eq('trip_id', data);
 
       //Change function to return also the visits if needed
 
@@ -285,11 +280,10 @@ export default function NewJournal() {
       }
 
       const visitPromises = visitData.map((visit, index) => {
-        return uploadImages(visit.id, activities[index].photos, userID??''); // Upload images for each visit
+        return uploadImages(visit.id, activities[index].photos, userID ?? ''); // Upload images for each visit
       });
 
       await Promise.all(visitPromises); // Ensure all image uploads complete
-
 
       console.log('Journal created successfully with trip_id:', insertedTripId);
 
@@ -299,7 +293,6 @@ export default function NewJournal() {
         setModalUpload(false);
         router.replace(''); // Redirect to home screen
       }, 1000);
-
     } catch (error) {
       console.error('Error creating journal or uploading images:', error);
 
@@ -308,22 +301,19 @@ export default function NewJournal() {
         await deleteTrip(insertedTripId);
       }
     }
-  }
+  };
 
   const confirmJournalCreation = () => {
     router.replace('/');
-  }
-
+  };
 
   const showUploadingAlert = () => {
     Alert.alert('Success', 'Journal created successfully', [{ text: 'OK', onPress: () => confirmJournalCreation() }]);
-  }
+  };
 
   const showAlert = () => {
     Alert.alert('Error', 'Please fill all the inputs', [{ text: 'OK', onPress: () => console.log('OK Pressed') }]);
   };
-
-
 
   function CreateButton(): ReactNode {
     return (
@@ -348,7 +338,7 @@ export default function NewJournal() {
       <View style={styles.section}>
         <Text style={styles.title}>Title</Text>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
           <TextInput placeholder='Type in a title' onChangeText={onChangeTitle} value={titleText} />
         </View>
       </View>
@@ -361,7 +351,7 @@ export default function NewJournal() {
         </View>
       </View>
 
-      <View style={{ paddingVertical: 15, marginHorizontal: 20, }}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Date</Text>
 
         <CalendarInput selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
@@ -370,12 +360,7 @@ export default function NewJournal() {
       <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Score</Text>
         <View style={{ marginTop: 10 }}>
-          <StarRating
-            rating={givenStar}
-            onChange={onChangeGivenStar}
-            color={textColor}
-            starSize={50}
-          />
+          <StarRating rating={givenStar} onChange={onChangeGivenStar} color={textColor} starSize={50} />
         </View>
       </View>
 
@@ -393,11 +378,10 @@ export default function NewJournal() {
             </Pressable>
             <Image source={{ uri: image }} style={styles.picker} />
           </View>
-
         )}
       </View>
 
-      <View style={{ paddingVertical: 15, marginHorizontal: 20, }}>
+      <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Activities</Text>
 
         <ScrollView keyboardShouldPersistTaps={'handled'} horizontal={true} style={styles.activityContainer}>

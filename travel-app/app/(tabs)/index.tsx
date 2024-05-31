@@ -36,6 +36,7 @@ export default function TabOneScreen() {
 
   // When the user reaches the end of the list this function gets called
   const handleEndReached = () => {
+    console.log('hasmore: ', hasMore);
     if (hasMore) {
       getTrips();
     }
@@ -43,6 +44,7 @@ export default function TabOneScreen() {
 
   // When applying filters it resets all for the reloading
   const resetPage = () => {
+    console.log('fire');
     setPage(1);
     setTrips([]);
     setHasMore(true);

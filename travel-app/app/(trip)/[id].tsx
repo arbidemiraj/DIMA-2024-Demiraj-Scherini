@@ -61,6 +61,7 @@ export default function Trip() {
 
   // Get the visits (activities) done during the trip
   const getVisits = async () => {
+    if (!id) return;
     try {
       const { data, error } = await supabase.from('visit').select(`*, image(*)`).eq('trip_id', id);
       if (error) throw error;
@@ -87,6 +88,8 @@ export default function Trip() {
 
   // Get data of the trip
   const getTrip = async () => {
+    if (!id) return;
+
     setLoading(true);
     try {
       const { data, error } = await supabase.from('trip').select(`*, category(*), visit(*, image(*)), profile_trip(role, profile(*))`).eq('id', id).single();
@@ -131,6 +134,8 @@ export default function Trip() {
 
   //gets if the trip is in the user favourites or not
   const getIsFav = async () => {
+    if (!id) return;
+
     try {
       const stringValue = await AsyncStorage.getItem(id.toString());
 
@@ -147,6 +152,8 @@ export default function Trip() {
 
   //saves the new fav value for the current trip
   const storeIsFav = async (value: boolean) => {
+    if (!id) return;
+
     try {
       await AsyncStorage.setItem(id.toString(), JSON.stringify(value));
     } catch (e) {

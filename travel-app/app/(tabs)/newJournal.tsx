@@ -18,7 +18,7 @@ import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import Toast from 'react-native-toast-message';
 import { CategoryKey } from '@/types/types';
-import { handlePickImage } from '@/components/handlePickImage';
+import { handlePickImage } from '@/hooks/handlePickImage';
 import CalendarInput from '@/components/CalendarInput';
 import UploadModal from '@/components/UploadModal';
 import { set } from 'date-fns';
@@ -177,38 +177,34 @@ export default function NewJournal() {
     );
   }
 
-
-  const uploadImages = async (visitId: number, photos: string[]) => {
+  const uploadImages = async (visitId: number, photos: string[], userID: string) => {
     try {
-      const paths: string[] = [];
-
-      for (const photo of photos) {
+      const imageInsertData: { visit_id: number; url: string }[] = [];
+  
+      const uploadPromises = photos.map(async (photo) => {
         const base64 = await FileSystem.readAsStringAsync(photo, { encoding: 'base64' });
         const ext = photo.split('.').pop();
-        const filePath = `${userID}/${new Date().getTime()}.${ext}`;
-
-        const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpeg' });
-
+        const filePath = `${userID}/${Date.now()}.${ext}`;
+  
+        const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: `image/${ext}` });
+  
         if (storageError) {
           throw storageError;
         }
-
-        const { data, error } = await supabase.from('image').insert(
-          { visit_id: visitId, url: 'https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/' + storageData.path }
-        );
-
-        console.log(data);
-
-        console.log(storageData);
-
-        if (error) {
-          throw error;
-        }
-
-        paths.push(storageData.path);
+  
+        const imageUrl = `https://yksbvdkpcrrszwkjmnee.supabase.co/storage/v1/object/public/images/${storageData.path}`;
+        imageInsertData.push({ visit_id: visitId, url: imageUrl });
+      });
+  
+      await Promise.all(uploadPromises);
+  
+      const { data, error } = await supabase.from('image').insert(imageInsertData);
+  
+      if (error) {
+        throw error;
       }
-
-      console.log('Images uploaded successfully:', paths);
+  
+      console.log('Images uploaded successfully');
     } catch (error) {
       console.error('Error uploading images:', error);
       throw error; // Propagate the error to handle it in createJournal
@@ -227,6 +223,8 @@ export default function NewJournal() {
   const createJournal = async () => {
     if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0 || activities.length == 0) {
       showAlert();
+
+      return;
     }
 
     setModalUpload(true);
@@ -287,13 +285,14 @@ export default function NewJournal() {
       }
 
       const visitPromises = visitData.map((visit, index) => {
-        return uploadImages(visit.id, activities[index].photos); // Upload images for each visit
+        return uploadImages(visit.id, activities[index].photos, userID??''); // Upload images for each visit
       });
 
       await Promise.all(visitPromises); // Ensure all image uploads complete
 
 
       console.log('Journal created successfully with trip_id:', insertedTripId);
+
       setLoadingUpload(false);
 
       setTimeout(() => {

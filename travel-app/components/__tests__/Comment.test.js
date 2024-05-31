@@ -9,7 +9,7 @@ describe('Comment component test', () => {
       commentContent: 'This is a test comment',
     };
 
-    const { getByText, getByTestId } = render(<Comment comment={comment} />);
+    const { getByText } = render(<Comment comment={comment} />);
 
     // Check if user name is rendered correctly
     expect(getByText('Test User')).toBeTruthy();

@@ -21,7 +21,6 @@ import { CategoryKey } from '@/types/types';
 import { handlePickImage } from '@/hooks/handlePickImage';
 import CalendarInput from '@/components/CalendarInput';
 import UploadModal from '@/components/UploadModal';
-import { set } from 'date-fns';
 
 interface User {
   id: string;
@@ -61,18 +60,17 @@ export default function NewJournal() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity>({ title: '', description: '', photos: [] });
   const [tooltipHandlers, setTooltipHandlers] = useState<boolean[]>(Array(activities.length).fill(false));
-
-  const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
-  const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
-
   const [tripCategories, setTripCategories] = useState<string[]>([]);
-
   const [selectedDates, setSelectedDates] = useState<{ startDate?: DateObject; endDate?: DateObject }>({});
-
   const [insertedTripId, setInsertedTripId] = useState<number>(0); // Store the inserted trip ID for future use
   const [loadingUpload, setLoadingUpload] = useState<boolean>(false); // Loading state for image upload
   const [modalUpload, setModalUpload] = useState<boolean>(false); // Modal state for image upload
   const [uploadProgress, setUploadProgress] = useState<number>(0); // Progress of image upload
+
+  const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
+  const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+  const tintColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
+  const placeHolderColor = useColorScheme() === 'light' ? '#979797' : '#aaaaaa';
 
   const userID = useAuth().user?.id;
   const router = useRouter();
@@ -317,8 +315,8 @@ export default function NewJournal() {
 
   function CreateButton(): ReactNode {
     return (
-      <Pressable style={styles.createIcon}>
-        <Iconify icon='mingcute:check-fill' size={32} color={textColor} onPress={createJournal} />
+      <Pressable style={styles.createIcon} onPress={createJournal}>
+        <Iconify icon='material-symbols:upload' size={26} style={{ marginRight: 5 }} color={tintColor} />
       </Pressable>
     );
   }
@@ -337,30 +335,36 @@ export default function NewJournal() {
 
       <View style={styles.section}>
         <Text style={styles.title}>Title</Text>
-
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-          <TextInput placeholder='Type in a title' onChangeText={onChangeTitle} value={titleText} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1 }}>
+          <TextInput placeholder='Type in a title...' onChangeText={onChangeTitle} value={titleText} style={{ flex: 1, paddingVertical: 5 }} placeholderTextColor={placeHolderColor} />
         </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.title}>Description</Text>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <TextInput multiline={true} numberOfLines={5} placeholder='Add a description' onChangeText={onChangeDescription} value={descriptionText} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1 }}>
+          <TextInput
+            multiline={true}
+            numberOfLines={5}
+            placeholder='Add a description...'
+            onChangeText={onChangeDescription}
+            value={descriptionText}
+            style={{ flex: 1, paddingVertical: 5 }}
+            placeholderTextColor={placeHolderColor}
+          />
         </View>
       </View>
 
       <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
-        <Text style={styles.title}>Date</Text>
-
+        <Text style={[styles.title, { marginBottom: 10 }]}>Date</Text>
         <CalendarInput selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
       </View>
 
       <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Score</Text>
         <View style={{ marginTop: 10 }}>
-          <StarRating rating={givenStar} onChange={onChangeGivenStar} color={textColor} starSize={50} />
+          <StarRating rating={givenStar} onChange={onChangeGivenStar} color={tintColor} starSize={50} />
         </View>
       </View>
 
@@ -420,7 +424,7 @@ export default function NewJournal() {
         <Text style={styles.title}>Participants</Text>
 
         <View style={{ marginVertical: 20 }}>
-          <CustomButton func={toggleModal} altStyle={false} text='Add participants' />
+          <CustomButton func={toggleModal} altStyle={false} text='Manage participants' />
           <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap', marginVertical: 20 }}>
             {participants.map((participant, index) => (
               <ParticipantChip userID={participant.id} key={index} username={participant.username ?? ''} role={''} />
@@ -429,13 +433,7 @@ export default function NewJournal() {
         </View>
       </View>
 
-      <AddParticipantsModal
-        isModalVisible={isModalVisible}
-        toggleModal={toggleModal}
-        participants={participants}
-        removeParticipant={removeParticipant}
-        addParticipant={addParticipant}
-      ></AddParticipantsModal>
+      <AddParticipantsModal isModalVisible={isModalVisible} toggleModal={toggleModal} participants={participants} removeParticipant={removeParticipant} addParticipant={addParticipant} />
       <NewActivityModal
         isModalVisible={isActivityModalVisible}
         toggleModal={toggleActivityModal}
@@ -472,7 +470,6 @@ const styles = StyleSheet.create({
   section: {
     paddingVertical: 15,
     marginHorizontal: 20,
-    borderBottomWidth: 1,
   },
   activityImage: {
     height: 120,

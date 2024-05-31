@@ -38,7 +38,7 @@ export default function CustomButton({ text, altStyle, func }: Props) {
 
   return (
     <View style={[styles.container, computeBackground()]}>
-      <Pressable onPress={func} style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
+      <Pressable onPress={func} style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', paddingHorizontal: 20, paddingVertical: 10 }}>
         {({ pressed }) => <Text style={[styles.text, computeTextColor(), { opacity: pressed ? 0.5 : 1 }]}>{text}</Text>}
       </Pressable>
     </View>
@@ -47,8 +47,6 @@ export default function CustomButton({ text, altStyle, func }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
     borderRadius: 10,
     minWidth: 150,
   },

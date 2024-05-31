@@ -4,7 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, i
 import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
 import CustomButton from './CustomButton';
-import { handlePickImage } from './handlePickImage';
+import { handlePickImage } from '../hooks/handlePickImage';
 
 const { width } = Dimensions.get('screen');
 

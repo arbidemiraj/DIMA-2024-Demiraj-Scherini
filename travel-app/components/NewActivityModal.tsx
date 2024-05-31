@@ -204,6 +204,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
                 setActivityState((prevState) => ({ ...prevState, description: text }));
               }}
               value={activityState.description}
+              placeholderTextColor={placeHolderColor}
             />
           </View>
         </View>

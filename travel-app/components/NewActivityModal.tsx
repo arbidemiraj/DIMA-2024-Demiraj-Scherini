@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Pressable, Modal, useColorScheme} from 'react-native';
+import { StyleSheet, Pressable, Modal, useColorScheme } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { View, Text, TextInput, ScrollView } from '@/components/Themed';
@@ -8,10 +8,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
 
-
 import Toast from 'react-native-toast-message';
 import ImageSlide from './ImageSlide';
-
 
 type SetStateFunction<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -21,7 +19,7 @@ interface Props {
   activityInfos: Activity | null;
   index: number;
   setActivities: SetStateFunction<Activity[]>;
-  addCategories: (categories:string[]) => void;
+  addCategories: (categories: string[]) => void;
 }
 
 interface Coordinates {
@@ -37,11 +35,10 @@ interface Activity {
 }
 
 export default function NewActivityModal({ isModalVisible, toggleModal, index, activityInfos, setActivities, addCategories }: Props) {
-  const [image, setImage] = useState<string>('');
-
   const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
   const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
+  const placeHolderColor = useColorScheme() === 'light' ? '#979797' : '#aaaaaa';
 
   const isFocused = useIsFocused();
   const [activityState, setActivityState] = useState<Activity>({
@@ -50,8 +47,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     photos: [],
   });
 
-  const autocompleteRef = useRef<GooglePlacesAutocompleteRef>(null); 
-  const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
+  const autocompleteRef = useRef<GooglePlacesAutocompleteRef>(null);
 
   // calculate the top padding for the modal
   const topPadding = useSafeAreaInsets().top;
@@ -73,34 +69,28 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
   }, [activityInfos, isFocused]);
 
   // Handles when a place is selected from the dropdown menu
-  const handlePlacePress = (data: any, details: any = null) => {   
-    const text = autocompleteRef.current?.getAddressText() ?? '';
-
+  const handlePlacePress = (data: any, details: any = null) => {
     if (details) {
       const mainText = data.structured_formatting.main_text;
 
       // Extract locality and country from address components
       const addressComponents = details.address_components;
-      const localityComponent = addressComponents.find((component: { types: string | string[]; }) => 
-        component.types.includes('locality')
-      );
-      const countryComponent = addressComponents.find((component: { types: string | string[]; }) => 
-        component.types.includes('country')
-      );
+      const localityComponent = addressComponents.find((component: { types: string | string[] }) => component.types.includes('locality'));
+      const countryComponent = addressComponents.find((component: { types: string | string[] }) => component.types.includes('country'));
 
       const locality = localityComponent ? localityComponent.long_name : '';
       const country = countryComponent ? countryComponent.long_name : '';
 
       // Format as main_text, locality, Country
       const formattedPlaceName = `${mainText}${locality ? `, ${locality}` : ''}${country ? `, ${country}` : ''}`;
-      
+
       autocompleteRef.current?.setAddressText(formattedPlaceName);
 
       setActivityState((prevState) => ({
         ...prevState,
         title: formattedPlaceName,
       }));
-      
+
       // Clear the input field after selecting a place
       const { lat, lng } = details.geometry.location;
 
@@ -110,12 +100,12 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
       }));
 
       console.log('Place selected:', formattedPlaceName);
-    } 
+    }
   };
 
   // Function to close the modal
   const handleClose = () => {
-    if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0){
+    if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0) {
       Toast.show({
         type: 'error',
         position: 'top',
@@ -124,8 +114,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
         visibilityTime: 1500,
         autoHide: true,
       });
-    } 
-    else {
+    } else {
       setActivities((prevActivities) => {
         const newActivity = [...prevActivities]; // Create a copy of the previous array
         newActivity[index] = activityState; // Update the value at the specified index
@@ -140,93 +129,89 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     }
   };
 
-  
-
   return (
     <Modal visible={isModalVisible} transparent={true}>
-      <ScrollView style={{ flex: 1, display: 'flex', paddingHorizontal: 10, paddingTop: topPadding }} keyboardShouldPersistTaps={'always'} nestedScrollEnabled={true}>
-        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Pressable onPress={toggleModal}>
-            <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 10, flex: 1 }} />
-          </Pressable>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: topPadding, paddingBottom: 10, borderBottomWidth: 0.18 }}>
+        <Pressable onPress={toggleModal}>
+          <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
+        </Pressable>
 
-          <Pressable onPress={handleClose}>
-            <Iconify icon='mingcute:check-fill' size={28} color={textColor} style={{ marginRight: 15, flex: 1 }} />
-          </Pressable>
-        </View>
-
+        <Pressable onPress={handleClose}>
+          <Iconify icon='ic:round-check' size={28} color={textColor} style={{ marginRight: 15, flex: 1 }} />
+        </Pressable>
+      </View>
+      <ScrollView style={{ flex: 1, display: 'flex', paddingHorizontal: 10, paddingTop: 10 }} keyboardShouldPersistTaps={'always'} nestedScrollEnabled={true}>
         <View style={styles.section}>
           <Text style={styles.title}>Place</Text>
 
           <GooglePlacesAutocomplete
-              placeholder='Type in a place...'
-              enablePoweredByContainer={false}
-              listViewDisplayed={false}
-              ref={autocompleteRef}
-              disableScroll={true}
-              fetchDetails={true}
-              query={{key: 'AIzaSyC7Qjn3MKrk9I9MVcgRHqWdaPhYhwz4QZ8'}}
-              onPress={handlePlacePress}
-              onFail={(error) => console.log(error)}
-              onNotFound={() => console.log('no results')}
-              textInputProps={{
-                placeholderTextColor: textColor,
-              }}
-              styles={{
-                container: {
-                  flex: 0,
-                  marginVertical: 10, 
-                  paddingVertical: 10,
-                  backgroundColor: 'transparent',
-                },
-                description: {
-                  color: textColor,
-                  fontSize: 16,
-                },
-                textInputContainer: {
-                  backgroundColor: 'transparent',
-                  borderBottomWidth: 1,
-                  borderColor: separatorColor,
-                },
-                textInput: {
-                  backgroundColor: 'transparent',
-                  color: textColor,
-                },
-                predefinedPlacesDescription: {
-                  color: textColor,
-                },
-                row: {
-                  backgroundColor: backgroundColor, // Dropdown menu color
-                },
-                poweredContainer: {
-                  backgroundColor: backgroundColor, // Background color of 'powered by Google' row
-                },
-              }}
-            />
-          
+            placeholder='Type in a place...'
+            enablePoweredByContainer={false}
+            listViewDisplayed={false}
+            ref={autocompleteRef}
+            disableScroll={true}
+            fetchDetails={true}
+            query={{ key: 'AIzaSyC7Qjn3MKrk9I9MVcgRHqWdaPhYhwz4QZ8' }}
+            onPress={handlePlacePress}
+            onFail={(error) => console.log(error)}
+            onNotFound={() => console.log('no results')}
+            textInputProps={{
+              placeholderTextColor: placeHolderColor,
+            }}
+            styles={{
+              container: {
+                flex: 0,
+                marginVertical: 10,
+                paddingVertical: 10,
+                backgroundColor: 'transparent',
+              },
+              description: {
+                color: textColor,
+                fontSize: 16,
+              },
+              textInputContainer: {
+                backgroundColor: 'transparent',
+                borderBottomWidth: 1,
+                borderColor: separatorColor,
+              },
+              textInput: {
+                backgroundColor: 'transparent',
+                color: textColor,
+                paddingHorizontal: 0,
+              },
+              predefinedPlacesDescription: {
+                color: textColor,
+              },
+              row: {
+                backgroundColor: backgroundColor, // Dropdown menu color
+              },
+              poweredContainer: {
+                backgroundColor: backgroundColor, // Background color of 'powered by Google' row
+              },
+            }}
+          />
         </View>
-        
 
         <View style={styles.section}>
           <Text style={styles.title}>Description</Text>
           <View style={{ borderBottomWidth: 1, marginVertical: 10, paddingVertical: 10 }}>
-            <TextInput 
-              style={{ color: textColor, fontSize: 16, paddingHorizontal: 10,}}
+            <TextInput
+              style={{ flex: 1, paddingVertical: 5 }}
               multiline={true}
               numberOfLines={5}
-              placeholder='Add a description'
+              placeholder='Add a description...'
               onChangeText={(text) => {
                 setActivityState((prevState) => ({ ...prevState, description: text }));
               }}
               value={activityState.description}
+              placeholderTextColor={placeHolderColor}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.title}>Photos</Text>
-          <ImageSlide setActivityState={setActivityState} activityState={activityState} addCategories={addCategories}/>
-          
+          <Text style={[styles.title, { marginBottom: 15 }]}>Photos</Text>
+          <ImageSlide setActivityState={setActivityState} activityState={activityState} addCategories={addCategories} />
         </View>
       </ScrollView>
     </Modal>
@@ -234,9 +219,6 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 10,
-  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',

@@ -35,7 +35,6 @@ export default function ParticipantChipWithRemove({ username, userID, removePart
     return <Iconify icon='carbon:close-filled' size={28} color={iconColor} />;
   }
 
-  
   return (
     <Link href={{ pathname: '/(profile)/[id]', params: { id: userID } }}>
       <View
@@ -50,7 +49,9 @@ export default function ParticipantChipWithRemove({ username, userID, removePart
       >
         <RoleIcon />
         <Text style={styles.text}>{username}</Text>
-        <Pressable onPress={() => removeParticipants(index)}><CloseIcon/></Pressable>
+        <Pressable onPress={() => removeParticipants(index)} testID='remove-button'>
+          <CloseIcon />
+        </Pressable>
       </View>
     </Link>
   );

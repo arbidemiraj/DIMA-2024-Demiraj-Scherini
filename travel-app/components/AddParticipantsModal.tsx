@@ -76,15 +76,16 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
 
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true}>
-      <SafeAreaView style={{ flex: 1, paddingTop: topPadding }} edges={[]}>
-        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
-          <Pressable onPress={toggleModal}>
-            <Iconify icon='ion:chevron-back-outline' size={28} color={iconColor} style={{ marginLeft: 10, flex: 1 }} />
-          </Pressable>
-          <Pressable onPress={toggleModal}>
-            <Iconify icon='mingcute:check-fill' size={28} color={iconColor} style={{ marginRight: 10, flex: 1 }} />
-          </Pressable>
-        </View>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: topPadding, paddingBottom: 10, borderBottomWidth: 0.18 }}>
+        <Pressable onPress={toggleModal}>
+          <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
+        </Pressable>
+
+        <Pressable onPress={toggleModal}>
+          <Iconify icon='ic:round-check' size={28} color={textColor} style={{ marginRight: 15, flex: 1 }} />
+        </Pressable>
+      </View>
+      <View style={{ flex: 1, paddingTop: 10 }}>
         <View style={styles.modalInputContainer}>
           <TextInput onChangeText={handleSearch} placeholder='Search for a user' value={userText} style={styles.modalTextInput} />
         </View>
@@ -114,12 +115,15 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Partecipants</Text>
           <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap', marginTop: 10, marginLeft: 10 }}>
-            {participants.map((participant, index) => (
-              <ParticipantChipWithRemove userID={participant.id} key={index} username={participant.username ?? ''} index={index} removeParticipants={removeParticipant} />
-            ))}
+            <View style={{ marginLeft: 10, gap: 10 }}>
+              {participants.length === 0 && <Text>No other participants added yet...</Text>}
+              {participants.map((participant, index) => (
+                <ParticipantChipWithRemove userID={participant.id} key={index} username={participant.username ?? ''} index={index} removeParticipants={removeParticipant} />
+              ))}
+            </View>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 }

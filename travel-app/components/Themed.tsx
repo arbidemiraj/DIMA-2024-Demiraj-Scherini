@@ -3,15 +3,14 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 
-import { Text as DefaultText, View as DefaultView, TextInput as DefaultTextInput} from 'react-native';
+import { Text as DefaultText, View as DefaultView, TextInput as DefaultTextInput } from 'react-native';
 import { SafeAreaView as DefaultSafeAreaView, SafeAreaViewProps as DefaultSafeAreaProps } from 'react-native-safe-area-context';
 import { BottomSheetViewProps as DefaultBottomSheetProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetView/types';
-import { BottomSheetView as DefaultBottomSheetView, BottomSheetModal as DefaultBottomSheetModal } from '@gorhom/bottom-sheet';
+import { BottomSheetView as DefaultBottomSheetView } from '@gorhom/bottom-sheet';
 import { ScrollView as DefaultScrollView } from 'react-native-gesture-handler';
 import Colors from '@/constants/Colors';
 
 import { useColorScheme } from './useColorScheme';
-import {  } from 'react-native';
 
 type ThemeProps = {
   lightColor?: string;
@@ -45,7 +44,7 @@ export function Text(props: TextProps) {
 export function TextInput(props: TextInputProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
-  return <DefaultTextInput style={[{ color }, style]} {...otherProps} placeholderTextColor={color}/>;
+  return <DefaultTextInput style={[{ color }, style]} {...otherProps} />;
 }
 
 export function View(props: ViewProps) {
@@ -75,5 +74,6 @@ export function ScrollView(props: ScrollViewProps) {
   const borderBottomColor = useThemeColor({ light: lightColor, dark: darkColor }, 'separator');
   const borderTopColor = useThemeColor({ light: lightColor, dark: darkColor }, 'separator');
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+  // @ts-ignore: `style` prop is not defined in `ScrollViewProps`
   return <DefaultScrollView style={[{ backgroundColor, borderBottomColor, borderTopColor }, style]} {...otherProps} />;
 }

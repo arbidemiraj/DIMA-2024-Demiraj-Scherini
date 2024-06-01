@@ -25,12 +25,12 @@ export default function ParticipantChip({ userID, username, role }: Props) {
 
   function RoleIcon(): ReactNode {
     const iconColor = colorScheme === 'light' ? Colors.light.text : Colors.dark.text;
-    if (role === 'author') return <Iconify icon='iconoir:user-star' size={28} color={iconColor} />;
-    else return <Iconify icon='iconoir:user' size={28} color={iconColor} />;
+    if (role === 'author') return <Iconify icon='iconoir:user-star' size={28} color={iconColor} testID='role-icon' />;
+    else return <Iconify icon='iconoir:user' size={28} color={iconColor} testID='role-icon' />;
   }
 
   return (
-    <Link href={{ pathname: '/(profile)/[id]', params: { id: userID } }}>
+    <Link href={{ pathname: '/(profile)/[id]', params: { id: userID } }} testID='profile-link'>
       <View
         style={[
           styles.container,

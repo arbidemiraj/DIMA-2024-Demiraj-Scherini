@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Pressable, Modal, useColorScheme } from 'react-native';
+import { StyleSheet, Pressable, Modal, useColorScheme, Alert } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { View, Text, TextInput, ScrollView } from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
-import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
 
@@ -39,13 +38,15 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
   const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
   const placeHolderColor = useColorScheme() === 'light' ? '#979797' : '#aaaaaa';
+  const [isPlaceSelected, setIsPlaceSelected] = useState<boolean>(false);
 
-  const isFocused = useIsFocused();
   const [activityState, setActivityState] = useState<Activity>({
     description: '',
     title: '',
     photos: [],
   });
+
+  const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
 
   const autocompleteRef = useRef<GooglePlacesAutocompleteRef>(null);
 
@@ -59,6 +60,8 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
         title: activityInfos.title,
         photos: activityInfos.photos,
       });
+
+      autocompleteRef.current?.setAddressText(activityInfos.title);
     } else {
       setActivityState({
         description: '',
@@ -66,7 +69,8 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
         photos: [],
       });
     }
-  }, [activityInfos, isFocused]);
+  }, [activityInfos, isModalVisible]);
+
 
   // Handles when a place is selected from the dropdown menu
   const handlePlacePress = (data: any, details: any = null) => {
@@ -86,11 +90,6 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
       autocompleteRef.current?.setAddressText(formattedPlaceName);
 
-      setActivityState((prevState) => ({
-        ...prevState,
-        title: formattedPlaceName,
-      }));
-
       // Clear the input field after selecting a place
       const { lat, lng } = details.geometry.location;
 
@@ -99,22 +98,29 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
         coordinates: { latitude: lat, longitude: lng },
       }));
 
+      setActivityState((prevState) => ({
+        ...prevState,
+        title: formattedPlaceName,
+      }));
+
+      setIsPlaceSelected(true);
+
       console.log('Place selected:', formattedPlaceName);
     }
   };
 
+  const showAlert = (msg:string) => {
+    Alert.alert('Error', msg, [{ text: 'OK', onPress: () => console.log('OK Pressed') }]);
+  };
+  
   // Function to close the modal
   const handleClose = () => {
-    if (activityState.title === '' || activityState.description === '' || activityState.photos.length === 0) {
-      Toast.show({
-        type: 'error',
-        position: 'top',
-        text1: 'Error',
-        text2: 'Please fill all the inputs',
-        visibilityTime: 1500,
-        autoHide: true,
-      });
-    } else {
+    if (activityState.description === '' || activityState.photos.length === 0) {
+      showAlert('Fill all the inputs');
+    } else if(isPlaceSelected === false) {
+      showAlert('Select a valid place');
+    
+    }else {
       setActivities((prevActivities) => {
         const newActivity = [...prevActivities]; // Create a copy of the previous array
         newActivity[index] = activityState; // Update the value at the specified index
@@ -151,12 +157,15 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
             ref={autocompleteRef}
             disableScroll={true}
             fetchDetails={true}
-            query={{ key: 'AIzaSyC7Qjn3MKrk9I9MVcgRHqWdaPhYhwz4QZ8' }}
+            query={{ key: apiKey }}
             onPress={handlePlacePress}
             onFail={(error) => console.log(error)}
             onNotFound={() => console.log('no results')}
             textInputProps={{
               placeholderTextColor: placeHolderColor,
+              onChange: () => {
+                setIsPlaceSelected(false);
+              }
             }}
             styles={{
               container: {

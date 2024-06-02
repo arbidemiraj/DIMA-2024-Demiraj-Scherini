@@ -18,7 +18,7 @@ import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import Toast from 'react-native-toast-message';
 import { CategoryKey } from '@/types/types';
-import { handlePickImage } from '@/hooks/handlePickImage';
+import { usePickImage } from '@/hooks/usePickImage';
 import CalendarInput from '@/components/CalendarInput';
 import UploadModal from '@/components/UploadModal';
 
@@ -216,6 +216,9 @@ export default function NewJournal() {
     }
   };
 
+  const removeDuplicates = (arr: string[]) => {
+    return [...new Set(arr)];
+  }
   const createJournal = async () => {
     if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0 || activities.length == 0) {
       showAlert();
@@ -236,6 +239,9 @@ export default function NewJournal() {
       throw storageError;
     }
 
+    // Remove duplicates from tripCategories
+    const categories = removeDuplicates(tripCategories);
+
     try {
       //@ts-ignore
       const { data, error } = await supabase.rpc('create_journal_rpc', {
@@ -253,7 +259,7 @@ export default function NewJournal() {
           lat: activity.coordinates?.latitude,
           long: activity.coordinates?.longitude, // Assuming `photos` is an array of photo URLs
         })),
-        trip_categories: tripCategories.map((category) => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
+        trip_categories: categories.map((category) => ({ id: categoryMap[category as CategoryKey] })), // Just pass category IDs
         participants: participants,
       });
 
@@ -289,7 +295,7 @@ export default function NewJournal() {
 
       setTimeout(() => {
         setModalUpload(false);
-        router.replace(''); // Redirect to home screen
+        router.push('/'); // Redirect to home screen
       }, 1000);
     } catch (error) {
       console.error('Error creating journal or uploading images:', error);
@@ -373,7 +379,7 @@ export default function NewJournal() {
 
         {!image ? (
           <View style={styles.picker}>
-            <CustomButton func={() => handlePickImage(setImage, addCategories)} altStyle={false} text='Pick an image from camera' />
+            <CustomButton func={() => usePickImage(setImage, addCategories)} altStyle={false} text='Pick an image from camera' />
           </View>
         ) : (
           <View>

@@ -4,7 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, i
 import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
 import CustomButton from './CustomButton';
-import { handlePickImage } from '../hooks/handlePickImage';
+import { usePickImage } from '@/hooks/usePickImage';
 
 const { width } = Dimensions.get('screen');
 
@@ -166,7 +166,7 @@ export default function ImageSlide({setActivityState, activityState, addCategori
               ]}
             >
               <View style={styles.picker}>
-                <CustomButton func={() => handlePickImage(setImage, addCategories)} altStyle={false} text='Pick an image from camera' />
+                <CustomButton func={() => usePickImage(setImage, addCategories)} altStyle={false} text='Pick an image from camera' />
               </View>
             </Animated.View>
           </Animated.ScrollView>

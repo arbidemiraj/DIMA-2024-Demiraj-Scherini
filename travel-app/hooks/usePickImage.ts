@@ -34,7 +34,7 @@ const getCategories = (labelAnnotations: any, addCategories: (categories:string[
 
 // Function to detect labels using Google Vision API
 const detectLabels = async (imageUri: string, addCategories : (categories : string[]) => void) => {
-    const apiKey = 'AIzaSyCa4-rskhmT6sUv9uab7be_pI8Lw9jmHyI'; // Replace with your API key
+    const apiKey = process.env.EXPO_PUBLIC_VISION_API_KEY; // Replace with your API key
     const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
 
     const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {
@@ -70,7 +70,7 @@ const detectLabels = async (imageUri: string, addCategories : (categories : stri
   };
 
 // Function to handle image picking
-export const handlePickImage = async (setImage: (imageUri: string) => void, addCategories: (categories: string[]) => void) => {
+export const usePickImage = async (setImage: (imageUri: string) => void, addCategories: (categories: string[]) => void) => {
   try {
     // Launch image picker
     const result = await ImagePicker.launchImageLibraryAsync({

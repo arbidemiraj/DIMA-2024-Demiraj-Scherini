@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Pressable, Modal, useColorScheme, Alert } from 'react-native';
+import { StyleSheet, Pressable, Modal, useColorScheme, Alert, Platform } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { View, Text, TextInput, ScrollView } from '@/components/Themed';
@@ -71,7 +71,6 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     }
   }, [activityInfos, isModalVisible]);
 
-
   // Handles when a place is selected from the dropdown menu
   const handlePlacePress = (data: any, details: any = null) => {
     if (details) {
@@ -109,18 +108,17 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
     }
   };
 
-  const showAlert = (msg:string) => {
+  const showAlert = (msg: string) => {
     Alert.alert('Error', msg, [{ text: 'OK', onPress: () => console.log('OK Pressed') }]);
   };
-  
+
   // Function to close the modal
   const handleClose = () => {
     if (activityState.description === '' || activityState.photos.length === 0) {
       showAlert('Fill all the inputs');
-    } else if(isPlaceSelected === false) {
+    } else if (isPlaceSelected === false) {
       showAlert('Select a valid place');
-    
-    }else {
+    } else {
       setActivities((prevActivities) => {
         const newActivity = [...prevActivities]; // Create a copy of the previous array
         newActivity[index] = activityState; // Update the value at the specified index
@@ -137,7 +135,17 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
 
   return (
     <Modal visible={isModalVisible} transparent={true}>
-      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: topPadding, paddingBottom: 10, borderBottomWidth: 0.18 }}>
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingTop: Platform.OS === 'ios' ? topPadding : 20,
+          backgroundColor: 'white',
+          paddingBottom: 10,
+        }}
+      >
         <Pressable onPress={toggleModal}>
           <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
         </Pressable>
@@ -165,7 +173,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
               placeholderTextColor: placeHolderColor,
               onChange: () => {
                 setIsPlaceSelected(false);
-              }
+              },
             }}
             styles={{
               container: {

@@ -50,8 +50,10 @@ const TripMap = ({ setScrollEnabled, scrollEnabled, visits, handleFullScreen, is
 
   // sets the starting region when the map is loaded
   const calculateRegion = (visits: VisitDetails[]) => {
-    const latitudes = visits.map((marker) => marker.lat);
-    const longitudes = visits.map((marker) => marker.long);
+    //@ts-ignore
+    const latitudes: number[] = visits.map((marker) => marker.lat);
+    //@ts-ignore
+    const longitudes: number[] = visits.map((marker) => marker.long);
 
     const minLat = Math.min(...latitudes);
     const maxLat = Math.max(...latitudes);
@@ -74,9 +76,21 @@ const TripMap = ({ setScrollEnabled, scrollEnabled, visits, handleFullScreen, is
   return (
     <View style={styles.mapContainer}>
       <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-        <MapView style={styles.map} ref={mapRef} region={region} zoomEnabled={true} scrollEnabled={true} loadingEnabled={true} onMapReady={handleMapReady} onTouchStart={handleMapTouch} onTouchCancel={handleMapRelease} onTouchEndCapture={handleMapRelease}>
+        <MapView
+          testID='trip-map'
+          style={styles.map}
+          ref={mapRef}
+          region={region}
+          zoomEnabled={true}
+          scrollEnabled={true}
+          loadingEnabled={true}
+          onMapReady={handleMapReady}
+          onTouchStart={handleMapTouch}
+          onTouchCancel={handleMapRelease}
+          onTouchEndCapture={handleMapRelease}
+        >
           {markers.map((marker, index) => (
-            <Marker key={index} coordinate={{ latitude: marker.lat, longitude: marker.long }} title={marker.name}></Marker>
+            <Marker key={index} coordinate={{ latitude: marker.lat!, longitude: marker.long! }} title={marker.name} testID={marker.name}></Marker>
           ))}
         </MapView>
         <View style={{ flex: 1, marginTop: isMapFullScreen ? insets.top : 0, backgroundColor: 'transparent' }} pointerEvents='box-none'>
@@ -85,7 +99,7 @@ const TripMap = ({ setScrollEnabled, scrollEnabled, visits, handleFullScreen, is
               <Iconify icon='gg:close' size={26} color={'#000'} />
             </Pressable>
           ) : (
-            <Pressable onPress={handleFullScreen} style={styles.mapIconContainer}>
+            <Pressable onPress={handleFullScreen} style={styles.mapIconContainer} testID='fullscreen-button'>
               <Iconify icon='gg:expand' size={26} color={'#000'} />
             </Pressable>
           )}

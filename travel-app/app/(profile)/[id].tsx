@@ -2,8 +2,6 @@ import { StyleSheet, Image, useColorScheme } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
 import { useLocalSearchParams } from 'expo-router';
-import { useAuth } from '@/provider/AuthProvider';
-import { Redirect } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Profile, TripDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +11,7 @@ import { GridLayout } from '@/components/GridLayout';
 import { ScrollView } from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
 import Colors from '@/constants/Colors';
+import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
 
 export default function UserProfilePage() {
   const { id } = useLocalSearchParams();
@@ -110,8 +109,8 @@ export default function UserProfilePage() {
         }}
       />
       <View style={styles.section}>
-        <Text style={[styles.title, styles.sectionHeader]}>Biography</Text>
-        <Text>{user?.biography}</Text>
+        <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSizeTitle() }]}>Biography</Text>
+        <Text style={{ fontSize: useFontSize() }}>{user?.biography}</Text>
       </View>
       <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
         {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}

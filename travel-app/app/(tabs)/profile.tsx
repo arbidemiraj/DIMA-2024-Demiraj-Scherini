@@ -11,6 +11,7 @@ import { ScrollView } from '@/components/Themed';
 import { Link, Stack } from 'expo-router';
 import { Iconify } from 'react-native-iconify';
 import Colors from '@/constants/Colors';
+import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
 
 export default function ProfilePage() {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -102,8 +103,8 @@ export default function ProfilePage() {
         }}
       />
       <View style={styles.section}>
-        <Text style={[styles.title, styles.sectionHeader]}>Biography</Text>
-        <Text>{user?.biography}</Text>
+        <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSizeTitle() }]}>Biography</Text>
+        <Text style={{ fontSize: useFontSize() }}>{user?.biography}</Text>
       </View>
       <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
         {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
@@ -123,7 +124,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 20,
     fontWeight: 'bold',
   },
   sectionHeader: {

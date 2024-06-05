@@ -17,6 +17,7 @@ import TripMap from '@/components/TripMap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ParticipanrChip from '@/components/ParticipantChip';
+import { useFontSize } from '@/hooks/useFontSize';
 
 export default function Trip() {
   const { id } = useLocalSearchParams();
@@ -53,11 +54,6 @@ export default function Trip() {
    * testing, combine it with console.log in handleRelease
    * and handleMapTouch in TripMap.tsx to understand when it locks
    */
-
-  /*   useEffect(() => {
-    console.log('can scroll: ', scrollEnabled);
-  }, [scrollEnabled]);
- */
 
   // Get the visits (activities) done during the trip
   const getVisits = async () => {
@@ -236,26 +232,35 @@ export default function Trip() {
               <Text style={styles.score}>{trip?.score?.toFixed(1)}</Text>
             </View>
           </View>
-          <Text style={{ fontSize: 16 }}>{trip && trip.description}</Text>
+          <Text style={{ fontSize: useFontSize() }}>{trip && trip.description}</Text>
         </View>
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Partecipants</Text>
           <View style={{ flexDirection: 'row', gap: 15, flexWrap: 'wrap' }}>
-            {trip?.partecipants.map((user, index) => (
-              <ParticipanrChip userID={user.profile.id} key={index} username={user.profile.username!} role={user.role} />
-            ))}
+            {trip?.partecipants
+              .filter((x) => x.role === 'author')
+              .map((user, index) => (
+                <ParticipanrChip userID={user.profile.id} key={index} username={user.profile.username!} role={user.role} />
+              ))}
+            {trip?.partecipants
+              .filter((x) => x.role === 'participant')
+              .map((user, index) => (
+                <ParticipanrChip userID={user.profile.id} key={index} username={user.profile.username!} role={user.role} />
+              ))}
           </View>
         </View>
         <View style={styles.section}>
           <Text style={[styles.title, styles.sectionHeader]}>Visits</Text>
-          <View style={{ flexDirection: 'row', gap: 25, flexWrap: 'wrap' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-start', flexWrap: 'wrap', gap: 15 }}>
             {visits &&
               visits.map((visit, index) => (
-                <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild key={index}>
-                  <Pressable>
-                    <Image key={index} source={{ uri: visit.images[0].url! }} style={{ width: 100, height: 100, resizeMode: 'cover', borderRadius: 10 }} />
-                  </Pressable>
-                </Link>
+                <View key={index} style={{ flexBasis: '30%', aspectRatio: 1, maxHeight: 175, maxWidth: 175, minWidth: 100, minHeight: 100, marginBottom: 5 }}>
+                  <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild>
+                    <Pressable>
+                      <Image key={index} source={{ uri: visit.images[0].url! }} style={{ height: '100%', width: '100%', resizeMode: 'cover', borderRadius: 10 }} />
+                    </Pressable>
+                  </Link>
+                </View>
               ))}
           </View>
         </View>

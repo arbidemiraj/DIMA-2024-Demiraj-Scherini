@@ -1,10 +1,10 @@
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { TripDetails } from '@/types/types';
 import TripList from '@/components/TripList';
 import GooglePlacesInput from '@/components/GooglePlacesInput';
-import { SafeAreaView, View } from '@/components/Themed';
+import { SafeAreaView, View, Text } from '@/components/Themed';
 import useStore from '@/store/store';
 
 interface Coordinates {
@@ -16,7 +16,7 @@ export default function TabOneScreen() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const [isLoading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1); // starting page is 1
-  const [pageSize, setPageSize] = useState<number>(5); // page content size is 5
+  const [pageSize, setPageSize] = useState<number>(6); // page content size is 6
   const [hasMore, setHasMore] = useState<boolean>(true);
   // overlay logic
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
@@ -134,6 +134,7 @@ export default function TabOneScreen() {
       <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
         <GooglePlacesInput toggleOverlay={toggleOverlay} handlePlaceSelect={handlePlaceSelect} handleCategorySelect={handleCategorySelect} />
       </SafeAreaView>
+
       <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
       {showOverlay && <View style={styles.overlay} />}
     </View>

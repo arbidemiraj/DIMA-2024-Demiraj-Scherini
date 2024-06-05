@@ -11,7 +11,7 @@ import Colors from '@/constants/Colors';
 import CommentsBottomSheet from '@/components/CommentsBottomSheet';
 import Comment from '@/components/Comment';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
+import { useFontSize } from '@/hooks/useFontSize';
 
 export default function Visit() {
   const { id } = useLocalSearchParams();

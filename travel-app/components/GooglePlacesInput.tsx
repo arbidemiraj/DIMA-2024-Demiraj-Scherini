@@ -57,7 +57,11 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
         <View style={{ flexWrap: 'wrap', flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingVertical: 10 }}>
           {categoriesList.map((category) => (
             <Pressable onPress={toggleModal} key={category}>
-              <Text style={{ padding: 5, borderRadius: 5, backgroundColor: 'white', fontWeight: 'bold', paddingHorizontal: 10 }}>{category.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}</Text>
+              {({ pressed }) => (
+                <Text style={{ padding: 5, borderRadius: 5, backgroundColor: 'white', fontWeight: 'bold', paddingHorizontal: 10, opacity: pressed ? 0.5 : 1 }}>
+                  {category.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}
+                </Text>
+              )}
             </Pressable>
           ))}
         </View>

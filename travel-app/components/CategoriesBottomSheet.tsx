@@ -7,6 +7,8 @@ import { useColorScheme } from 'react-native';
 import CustomButton from './CustomButton';
 import { FoodIcon, SportIcon, NatureIcon, AdventureIcon, LuxoryIcon, RoadTripIcon, CultureIcon, MuseumIcon, MonumentIcon, WildlifeIcon } from './CategoryIcons';
 import useStore from '@/store/store';
+import { useWindowDimensions } from 'react-native';
+import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
 
 export type Ref = BottomSheetModal;
 
@@ -30,27 +32,58 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOve
     toggleCategory(value);
   };
 
+  const calculateIconSize = (screenWidth: number) => {
+    const baselineSize = 28;
+    const minWidth = 600;
+    const maxWidth = 1024;
+    const maxSize = 64;
+
+    // If screenWidth is less than minWidth, return the baseline size
+    if (screenWidth <= minWidth) {
+      return baselineSize;
+    }
+
+    // Calculate scaling factor based on remaining width (after minWidth)
+    const remainingWidth = screenWidth - minWidth;
+    const scaleFactor = remainingWidth / (maxWidth - minWidth);
+
+    // Interpolate between baseline size and maximum size using the scaling factor
+    const scaledSize = baselineSize + (maxSize - baselineSize) * scaleFactor;
+
+    // Ensure that the size does not exceed the maximum size
+    return Math.min(scaledSize, maxSize);
+  };
+  const { width: screenWidth } = useWindowDimensions();
+  const iconSize = calculateIconSize(screenWidth);
+
   return (
     <View style={styles.container}>
-      <BottomSheetModal ref={ref} snapPoints={snapPoints} index={0} onDismiss={toggleOverlay} backgroundStyle={{ backgroundColor: isLightTheme ? Colors.light.background : Colors.dark.background }} handleIndicatorStyle={{ backgroundColor: isLightTheme ? Colors.light.text : Colors.dark.text }}>
+      <BottomSheetModal
+        ref={ref}
+        snapPoints={snapPoints}
+        index={0}
+        onDismiss={toggleOverlay}
+        backgroundStyle={{ backgroundColor: isLightTheme ? Colors.light.background : Colors.dark.background }}
+        handleIndicatorStyle={{ backgroundColor: isLightTheme ? Colors.light.text : Colors.dark.text }}
+      >
         <BottomSheetView style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.title}>Filters</Text>
           </View>
           <View style={styles.categoryBox}>
-            <Text style={styles.title}>Category</Text>
-            <Text>Select one or more</Text>
-            <View style={styles.catList}>
-              <FoodIcon func={handlePress} size={28} />
-              <SportIcon func={handlePress} size={28} />
-              <NatureIcon func={handlePress} size={28} />
-              <AdventureIcon func={handlePress} size={28} />
-              <LuxoryIcon func={handlePress} size={28} />
-              <RoadTripIcon func={handlePress} size={28} />
-              <CultureIcon func={handlePress} size={28} />
-              <MuseumIcon func={handlePress} size={28} />
-              <MonumentIcon func={handlePress} size={28} />
-              <WildlifeIcon func={handlePress} size={28} />
+            <Text style={[styles.title, { fontSize: useFontSize() * 1.1, marginBottom: 2 }]}>Category</Text>
+            <Text style={{ fontSize: useFontSize() }}>Select one or more</Text>
+            <View style={[styles.catList, { justifyContent: screenWidth < 1000 ? 'space-between' : 'flex-start', gap: screenWidth < 1000 ? 10 : 20 }]}>
+              <FoodIcon func={handlePress} size={iconSize} />
+              <SportIcon func={handlePress} size={iconSize} />
+              <NatureIcon func={handlePress} size={iconSize} />
+              <AdventureIcon func={handlePress} size={iconSize} />
+              <LuxoryIcon func={handlePress} size={iconSize} />
+              <RoadTripIcon func={handlePress} size={iconSize} />
+              <CultureIcon func={handlePress} size={iconSize} />
+              <MuseumIcon func={handlePress} size={iconSize} />
+              <MonumentIcon func={handlePress} size={iconSize} />
+              <WildlifeIcon func={handlePress} size={iconSize} />
             </View>
           </View>
           <View style={[styles.btnGroup, { paddingBottom: Platform.OS === 'ios' ? 30 : 20 }]}>
@@ -89,8 +122,6 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'space-between',
   },
   btnGroup: {
     width: '100%',

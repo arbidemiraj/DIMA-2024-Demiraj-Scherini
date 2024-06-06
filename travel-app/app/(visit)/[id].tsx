@@ -11,6 +11,7 @@ import Colors from '@/constants/Colors';
 import CommentsBottomSheet from '@/components/CommentsBottomSheet';
 import Comment from '@/components/Comment';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useFontSize } from '@/hooks/useFontSize';
 
 export default function Visit() {
   const { id } = useLocalSearchParams();
@@ -126,11 +127,11 @@ export default function Visit() {
 
       <View style={{ flex: 0.5 }}>
         <View style={[styles.section, { marginTop: 0 }]}>
-          <Text style={[styles.title, styles.sectionHeader]}>Description</Text>
+          <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSize() * 1.1 }]}>Description</Text>
           {visit && <Text>{visit?.description}</Text>}
         </View>
         <View style={styles.section}>
-          <Text style={[styles.title, styles.sectionHeader]}>Comments</Text>
+          <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSize() * 1.1 }]}>Comments</Text>
           <Pressable onPress={toggleModal}>
             <Text style={{ color: useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tabIconDefault }}>Show all the comments</Text>
           </Pressable>

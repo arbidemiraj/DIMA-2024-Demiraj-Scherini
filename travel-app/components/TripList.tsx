@@ -1,4 +1,4 @@
-import { FlatList, ActivityIndicator, useColorScheme } from 'react-native';
+import { FlatList, ActivityIndicator, useColorScheme, Dimensions } from 'react-native';
 import React from 'react';
 import { TripDetails } from '@/types/types';
 import Colors from '@/constants/Colors';
@@ -16,6 +16,9 @@ interface Props {
 }
 
 export default function TripList({ trips, isLoading, handleEndReached }: Props) {
+  const { width } = Dimensions.get('window');
+  const numColumns = width < 768 ? 1 : 2;
+
   // Simple loader to be rendered while loading
   const renderFooter = () => {
     if (!isLoading) return null;
@@ -37,7 +40,7 @@ export default function TripList({ trips, isLoading, handleEndReached }: Props) 
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.3}
       //TODO: address responsiveness
-      //numColumns={numColumns}
+      numColumns={numColumns}
     />
   );
 }

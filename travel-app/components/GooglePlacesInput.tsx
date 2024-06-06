@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, View, Text } from 'react-native';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
@@ -14,7 +14,7 @@ interface Props {
   handleCategorySelect: () => void;
 }
 
-const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySelect}: Props) => {
+const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySelect }: Props) => {
   const apiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
   const [showBackIcon, setShowBackIcon] = useState<boolean>(false);
   const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
@@ -23,7 +23,7 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   //ref to GooglePlacesAutocomplete
-  const autocompleteRef = useRef<GooglePlacesAutocompleteRef>(null); 
+  const autocompleteRef = useRef<GooglePlacesAutocompleteRef>(null);
 
   // function to open the Filter tab
   const toggleModal = () => {
@@ -32,7 +32,7 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
   };
 
   // category filters logic
-  const { cleanList } = useStore();
+  const { cleanList, categoriesList } = useStore();
 
   const applyFilters = () => {
     bottomSheetModalRef.current?.dismiss();
@@ -50,14 +50,32 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
     setShowBackIcon(false); //set showBackIcon to false to show the search icon
     autocompleteRef.current?.setAddressText(''); //remove the text of the google places component
   };
-  
+
+  function FilteredCategoriesComponent() {
+    return (
+      categoriesList.length > 0 && (
+        <View style={{ flexWrap: 'wrap', flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingVertical: 10 }}>
+          {categoriesList.map((category) => (
+            <Pressable onPress={toggleModal} key={category}>
+              {({ pressed }) => (
+                <Text style={{ padding: 5, borderRadius: 5, backgroundColor: 'white', fontWeight: 'bold', paddingHorizontal: 10, opacity: pressed ? 0.5 : 1 }}>
+                  {category.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}
+                </Text>
+              )}
+            </Pressable>
+          ))}
+        </View>
+      )
+    );
+  }
+
   return (
     <View>
       <GooglePlacesAutocomplete
         placeholder='Discover by place...'
         enablePoweredByContainer={false}
         ref={autocompleteRef}
-        query={{key: apiKey}}
+        query={{ key: apiKey }}
         fetchDetails={true}
         onPress={handlePlacePress}
         onFail={(error) => console.log(error)}
@@ -115,16 +133,16 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
           },
         }}
         renderLeftButton={() => (
-            <View>
-               {showBackIcon 
-                  ? (
-                  <Pressable onPress={handleBack}>
-                    <Iconify icon='material-symbols:arrow-back' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />
-                  </Pressable>
-                  )
-                  : (<Iconify icon='material-symbols:search' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} /> )}
-            </View>
-          )}
+          <View>
+            {showBackIcon ? (
+              <Pressable onPress={handleBack}>
+                <Iconify icon='material-symbols:arrow-back' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />
+              </Pressable>
+            ) : (
+              <Iconify icon='material-symbols:search' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />
+            )}
+          </View>
+        )}
         renderRightButton={() => (
           // this is the filter category menu button
           <Pressable onPress={toggleModal}>
@@ -132,6 +150,7 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
           </Pressable>
         )}
       />
+      <FilteredCategoriesComponent />
 
       {/* custom component used for the modal filter menu */}
       <CategoriesBottomSheet ref={bottomSheetModalRef} toggleOverlay={toggleOverlay} applyFilters={applyFilters} removeFilters={cleanList} />

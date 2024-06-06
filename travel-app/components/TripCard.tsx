@@ -25,7 +25,7 @@ export default memo(function TripCard({ trip }: Props) {
   const scoreIconColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
 
   return (
-    <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild testID='profile-link'>
+    <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild testID='profile-link' style={{ flex: 0.5 }}>
       <Pressable>
         <View style={styles.item}>
           <Image source={{ uri: trip.cover_url }} style={styles.image} testID='trip-cover-image' />

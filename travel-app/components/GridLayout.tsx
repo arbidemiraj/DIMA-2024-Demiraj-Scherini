@@ -14,7 +14,7 @@ interface GridProps<T> {
 export function GridLayout<T extends any>({ data, renderItem, numColumns = 3, itemMargin = 0, isScrollNested }: GridProps<T>) {
   const [componentSize, setComponentSize] = useState((Dimensions.get('window').width - itemMargin) / numColumns);
   const renderGridItem = ({ item }: { item: T }) => {
-    return <View style={{ margin: itemMargin, flex: 1 / numColumns, height: componentSize }}>{renderItem(item)}</View>;
+    return <View style={{ margin: itemMargin, flex: 1 / numColumns, height: componentSize, aspectRatio: 1 }}>{renderItem(item)}</View>;
   };
 
   return (

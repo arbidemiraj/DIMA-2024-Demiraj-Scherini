@@ -218,7 +218,7 @@ export default function NewJournal() {
 
   const removeDuplicates = (arr: string[]) => {
     return [...new Set(arr)];
-  }
+  };
   const createJournal = async () => {
     if (titleText === '' || descriptionText === '' || !selectedDates.startDate || !selectedDates.endDate || !image || givenStar === 0 || activities.length == 0) {
       showAlert();

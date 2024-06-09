@@ -18,7 +18,7 @@ interface Props {
   scrollViewRef: React.RefObject<ScrollView>; // Add scrollViewRef prop
 }
 
-export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ comments, postComment, dismissModal, scrollViewRef }: Props, ref) {
+export default forwardRef<Ref, Props>(function CommentsBottomSheet({ comments, postComment, dismissModal, scrollViewRef }: Props, ref) {
   const isLightTheme = useColorScheme() === 'light';
   const snapPoints = useMemo(() => ['60%'], []);
   const [commentText, setCommentText] = useState<string>('');
@@ -50,12 +50,12 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ comments,
             <Text style={styles.title}>Comments</Text>
           </View>
           {comments.length === 0 ? (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View testID={'no-comments'} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <Text style={[styles.title, { fontSize: 20, margin: 5 }]}>No comments for now</Text>
               <Text>Start the conversation!</Text>
             </View>
           ) : (
-            <ScrollView style={styles.commentsSection} ref={scrollViewRef}>
+            <ScrollView testID={'comments'} style={styles.commentsSection} ref={scrollViewRef}>
               {comments &&
                 comments.map((comment, index) => (
                   <View key={index} style={[{ marginTop: 10 }, index === comments.length - 1 ? { marginBottom: 40 } : null]}>
@@ -67,6 +67,7 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ comments,
 
           <SafeAreaView edges={['bottom']} style={styles.writeSection}>
             <BottomSheetTextInput
+              testID='comment-input'
               value={commentText}
               onChangeText={setCommentText}
               returnKeyType='send'

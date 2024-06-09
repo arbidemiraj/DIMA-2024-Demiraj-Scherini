@@ -20,7 +20,7 @@ export default function CalendarInput({ selectedDates, setSelectedDates }: Props
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
   const onDayPress = (day: DateObject) => {
-    let updatedSelectedDates = { ...selectedDates };
+    let updatedSelectedDates = {...selectedDates};
 
     if (
       !updatedSelectedDates.startDate ||
@@ -68,7 +68,7 @@ export default function CalendarInput({ selectedDates, setSelectedDates }: Props
         </Pressable>
         {showDatePicker && (
           <View>
-            <Calendar markingType={'period'} onDayPress={onDayPress} markedDates={getMarkedDates()} maxDate={new Date().toISOString()} />
+            <Calendar testID={'calendar-component'} markingType={'period'} onDayPress={onDayPress} markedDates={getMarkedDates()} maxDate={new Date().toISOString()} />
             <TouchableOpacity>
               <View style={{ backgroundColor: Colors.light.tint }}>
                 <CustomButton func={() => setShowDatePicker(!showDatePicker)} text='Confirm' altStyle={true} />

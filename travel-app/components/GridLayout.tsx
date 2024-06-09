@@ -19,7 +19,7 @@ export function GridLayout<T extends any>({ data, renderItem, numColumns = 3, it
 
   return (
     <View>
-      <FlatList scrollEnabled={isScrollNested} data={data} renderItem={renderGridItem} keyExtractor={(item, index) => index.toString()} numColumns={numColumns} />
+      <FlatList testID={'flat-list'} scrollEnabled={isScrollNested} data={data} renderItem={renderGridItem} keyExtractor={(item, index) => index.toString()} numColumns={numColumns} />
     </View>
   );
 }

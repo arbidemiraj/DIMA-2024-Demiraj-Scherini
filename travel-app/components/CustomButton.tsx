@@ -11,13 +11,14 @@ import { useColorScheme } from 'react-native';
  */
 
 interface Props {
+  testID?: string;
   text: string;
   altStyle: boolean;
   // accept a function that is triggered when pressed
   func: () => void;
 }
 
-export default function CustomButton({ text, altStyle, func }: Props) {
+export default function CustomButton({testID, text, altStyle, func }: Props) {
   const isLightTheme = useColorScheme() === 'light';
 
   const computeBackground = (): ViewStyle => {
@@ -38,7 +39,7 @@ export default function CustomButton({ text, altStyle, func }: Props) {
 
   return (
     <View style={[styles.container, computeBackground()]}>
-      <Pressable onPress={func} style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', paddingHorizontal: 20, paddingVertical: 10 }}>
+      <Pressable testID={testID} onPress={func} style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', paddingHorizontal: 20, paddingVertical: 10 }}>
         {({ pressed }) => <Text style={[styles.text, computeTextColor(), { opacity: pressed ? 0.5 : 1 }]}>{text}</Text>}
       </Pressable>
     </View>

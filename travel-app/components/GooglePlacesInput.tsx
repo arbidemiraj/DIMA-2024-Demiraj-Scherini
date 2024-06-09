@@ -135,7 +135,7 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
         renderLeftButton={() => (
           <View>
             {showBackIcon ? (
-              <Pressable onPress={handleBack}>
+              <Pressable testID={'back-icon'} onPress={handleBack}>
                 <Iconify icon='material-symbols:arrow-back' size={24} color={iconColor} style={{ marginLeft: 15, marginRight: 5 }} />
               </Pressable>
             ) : (
@@ -145,7 +145,7 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
         )}
         renderRightButton={() => (
           // this is the filter category menu button
-          <Pressable onPress={toggleModal}>
+          <Pressable testID={'filter-button'} onPress={toggleModal}>
             <Iconify icon='lucide:settings-2' size={24} color={iconColor} style={{ marginRight: 15, marginLeft: 5 }} />
           </Pressable>
         )}

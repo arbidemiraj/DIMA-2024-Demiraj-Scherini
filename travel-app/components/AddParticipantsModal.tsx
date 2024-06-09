@@ -88,7 +88,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
         }}
       >
         <Pressable onPress={toggleModal}>
-          <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
+          <Iconify testID='close-button' icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
         </Pressable>
 
         <Pressable onPress={toggleModal}>
@@ -115,8 +115,8 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
                   <Text>{item.username}</Text>
                 </Pressable>
                 {/* Display other user information as needed */}
-                <Pressable onPress={() => addParticipant(item)}>
-                  <Iconify icon='gala:add' size={22} color={iconColor} style={{ alignSelf: 'flex-end' }} />
+                <Pressable  onPress={() => addParticipant(item)}>
+                  <Iconify testID='add-button' icon='gala:add' size={22} color={iconColor} style={{ alignSelf: 'flex-end' }} />
                 </Pressable>
               </View>
             )}

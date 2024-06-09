@@ -17,98 +17,99 @@ import useStore from '@/store/store';
  * and apply the correct icon, value and color.
  */
 interface SpecificIconProps {
+  testID?: string;
   // size of the icon
   size: number;
   //function triggered on press (value is passed to parent component when icon press)
   func: (value: string) => void;
 }
 
-export function FoodIcon({ size, func }: SpecificIconProps) {
+export function FoodIcon({ testID, size, func }: SpecificIconProps) {
   const value = 'food';
   return (
     <SelectableIcon value={value} bgColor={'#EAB308'} func={() => func(value)}>
-      <Iconify icon='pajamas:food' size={size} color={'white'} />
+      <Iconify testID={testID} icon='pajamas:food' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function SportIcon({ size, func }: SpecificIconProps) {
+export function SportIcon({testID, size, func }: SpecificIconProps) {
   const value = 'sport';
   return (
     <SelectableIcon value={value} bgColor={'#EC4899'} func={() => func(value)}>
-      <Iconify icon='fluent:sport-16-regular' size={size} color={'white'} />
+      <Iconify testID={testID} icon='fluent:sport-16-regular' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function NatureIcon({ size, func }: SpecificIconProps) {
+export function NatureIcon({testID, size, func }: SpecificIconProps) {
   const value = 'nature';
   return (
     <SelectableIcon value={value} bgColor={'#10B981'} func={() => func(value)}>
-      <Iconify icon='pajamas:nature' size={size} color={'white'} />
+      <Iconify testID={testID} icon='pajamas:nature' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function AdventureIcon({ size, func }: SpecificIconProps) {
+export function AdventureIcon({testID, size, func }: SpecificIconProps) {
   const value = 'adventure';
   return (
     <SelectableIcon value={value} bgColor={'#14B8A6'} func={() => func(value)}>
-      <Iconify icon='fluent-mdl2:world' size={size} color={'white'} />
+      <Iconify testID={testID} icon='fluent-mdl2:world' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function LuxoryIcon({ size, func }: SpecificIconProps) {
+export function LuxoryIcon({testID, size, func }: SpecificIconProps) {
   const value = 'luxury';
   return (
     <SelectableIcon value={value} bgColor={'#A855F7'} func={() => func(value)}>
-      <Iconify icon='ion:diamond' size={size} color={'white'} />
+      <Iconify testID={testID} icon='ion:diamond' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function RoadTripIcon({ size, func }: SpecificIconProps) {
+export function RoadTripIcon({testID, size, func }: SpecificIconProps) {
   const value = 'roadTrip';
   return (
     <SelectableIcon value={value} bgColor={'#EF4444'} func={() => func(value)}>
-      <Iconify icon='mdi:car-outline' size={size} color={'white'} />
+      <Iconify testID={testID} icon='mdi:car-outline' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function CultureIcon({ size, func }: SpecificIconProps) {
+export function CultureIcon({testID, size, func }: SpecificIconProps) {
   const value = 'culture';
   return (
     <SelectableIcon value={value} bgColor={'#F43F5E'} func={() => func(value)}>
-      <Iconify icon='solar:masks-linear' size={size} color={'white'} />
+      <Iconify testID={testID} icon='solar:masks-linear' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function MuseumIcon({ size, func }: SpecificIconProps) {
+export function MuseumIcon({testID, size, func }: SpecificIconProps) {
   const value = 'museum';
   return (
     <SelectableIcon value={value} bgColor={'#06B6D4'} func={() => func(value)}>
-      <Iconify icon='icon-park-outline:museum-one' size={size} color={'white'} />
+      <Iconify testID={testID} icon='icon-park-outline:museum-one' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function MonumentIcon({ size, func }: SpecificIconProps) {
+export function MonumentIcon({testID, size, func }: SpecificIconProps) {
   const value = 'monument';
   return (
     <SelectableIcon value={value} bgColor={'#3B82F6'} func={() => func(value)}>
-      <Iconify icon='icon-park-outline:monument-one' size={size} color={'white'} />
+      <Iconify testID={testID} icon='icon-park-outline:monument-one' size={size} color={'white'} />
     </SelectableIcon>
   );
 }
 
-export function WildlifeIcon({ size, func }: SpecificIconProps) {
+export function WildlifeIcon({testID, size, func }: SpecificIconProps) {
   const value = 'wildlife';
   return (
     <SelectableIcon value={value} bgColor={'#F97316'} func={() => func(value)}>
-      <Iconify icon='cil:animal' size={size} color={'white'} />
+      <Iconify testID={testID} icon='cil:animal' size={size} color={'white'} />
     </SelectableIcon>
   );
 }

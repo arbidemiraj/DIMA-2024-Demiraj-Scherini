@@ -66,6 +66,7 @@ export default function ImageSlide({setActivityState, activityState, addCategori
 
     return (
       <Animated.View
+        testID={`image-slide-${index}`}
         key={index}
         style={[
           {
@@ -78,7 +79,7 @@ export default function ImageSlide({setActivityState, activityState, addCategori
         ]}
       >
         <View>
-          <Pressable onPress={() => removeImage(index)} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+          <Pressable testID={`remove-button-${index}`} onPress={() => removeImage(index)} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
             <Iconify icon='carbon:close-filled' size={32} color={Colors.light.text} />
           </Pressable>
 
@@ -139,6 +140,7 @@ export default function ImageSlide({setActivityState, activityState, addCategori
     return (
         <View style={styles.container}>
             <Animated.ScrollView
+             testID="scroll-view"
              nestedScrollEnabled={true}
              scrollEventThrottle={1}
              horizontal

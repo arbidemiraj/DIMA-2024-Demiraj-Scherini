@@ -74,21 +74,21 @@ export default forwardRef<Ref, Props>(function CategoriesBottomSheet({ toggleOve
             <Text style={[styles.title, { fontSize: useFontSize() * 1.1, marginBottom: 2 }]}>Category</Text>
             <Text style={{ fontSize: useFontSize() }}>Select one or more</Text>
             <View style={[styles.catList, { justifyContent: screenWidth < 1000 ? 'space-between' : 'flex-start', gap: screenWidth < 1000 ? 10 : 20 }]}>
-              <FoodIcon func={handlePress} size={iconSize} />
-              <SportIcon func={handlePress} size={iconSize} />
-              <NatureIcon func={handlePress} size={iconSize} />
-              <AdventureIcon func={handlePress} size={iconSize} />
-              <LuxoryIcon func={handlePress} size={iconSize} />
-              <RoadTripIcon func={handlePress} size={iconSize} />
-              <CultureIcon func={handlePress} size={iconSize} />
-              <MuseumIcon func={handlePress} size={iconSize} />
-              <MonumentIcon func={handlePress} size={iconSize} />
-              <WildlifeIcon func={handlePress} size={iconSize} />
+              <FoodIcon testID={'food-icon'} func={handlePress} size={iconSize} />
+              <SportIcon testID={'sport-icon'} func={handlePress} size={iconSize} />
+              <NatureIcon testID={'nature-icon'} func={handlePress} size={iconSize} />
+              <AdventureIcon testID={'adventure-icon'} func={handlePress} size={iconSize} />
+              <LuxoryIcon testID={'luxury-icon'} func={handlePress} size={iconSize} />
+              <RoadTripIcon testID={'road-trip-icon'} func={handlePress} size={iconSize} />
+              <CultureIcon testID={'culture-icon'} func={handlePress} size={iconSize} />
+              <MuseumIcon testID={'museum-icon'} func={handlePress} size={iconSize} />
+              <MonumentIcon testID={'monument-icon'}  func={handlePress} size={iconSize} />
+              <WildlifeIcon testID={'wildlife-icon'} func={handlePress} size={iconSize} />
             </View>
           </View>
           <View style={[styles.btnGroup, { paddingBottom: Platform.OS === 'ios' ? 30 : 20 }]}>
-            <CustomButton text='Remove Filters' altStyle={true} func={removeFilters} />
-            <CustomButton text='Apply Filters' altStyle={false} func={applyFilters} />
+            <CustomButton testID={'remove'} text='Remove Filters' altStyle={true} func={removeFilters} />
+            <CustomButton testID={'apply'} text='Apply Filters' altStyle={false} func={applyFilters} />
           </View>
         </BottomSheetView>
       </BottomSheetModal>

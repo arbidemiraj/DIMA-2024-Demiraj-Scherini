@@ -102,7 +102,7 @@ export default function TabOneScreen() {
         setPage((page) => page + 1); // increment for pagination
       }
     } catch (err) {
-      console.log(err);
+      console.log('index: ', err);
       alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);

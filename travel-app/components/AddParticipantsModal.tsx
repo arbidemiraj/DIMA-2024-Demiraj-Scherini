@@ -69,7 +69,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
         setSearchResults([]);
       }
     } catch (err) {
-      console.log(err);
+      console.log('add part: ', err);
       alert('There was an error while fetching data from the server');
     }
   };
@@ -115,7 +115,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
                   <Text>{item.username}</Text>
                 </Pressable>
                 {/* Display other user information as needed */}
-                <Pressable  onPress={() => addParticipant(item)}>
+                <Pressable onPress={() => addParticipant(item)}>
                   <Iconify testID='add-button' icon='gala:add' size={22} color={iconColor} style={{ alignSelf: 'flex-end' }} />
                 </Pressable>
               </View>

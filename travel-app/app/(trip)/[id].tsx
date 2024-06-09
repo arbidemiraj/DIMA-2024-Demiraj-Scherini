@@ -75,7 +75,7 @@ export default function Trip() {
       }));
       setVisits((prev) => (prev = visits));
     } catch (err) {
-      console.log(err);
+      console.log('trip [id] get visits: ', err);
       alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);
@@ -110,7 +110,7 @@ export default function Trip() {
         })),
       });
     } catch (err) {
-      console.log(err);
+      console.log('trip [id] get trip data: ', err);
       alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);

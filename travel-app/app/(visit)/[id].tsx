@@ -56,7 +56,7 @@ export default function Visit() {
 
       if (data !== undefined) setVisit(visitData);
     } catch (err) {
-      console.log(err);
+      console.log('visit [id] get visit: ', err);
       alert('There was an error while retriving data from the server');
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ export default function Visit() {
       if (error) throw error;
       scrollViewRef.current?.scrollToEnd();
     } catch (err) {
-      console.log(err);
+      console.log('visit [id] post comment: ', err);
       alert('There was an error with posting your comment, please try again later');
     } finally {
       getComments();

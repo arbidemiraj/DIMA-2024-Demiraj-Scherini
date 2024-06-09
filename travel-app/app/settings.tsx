@@ -87,7 +87,7 @@ export default function Settings() {
     }
 
     const { data, error } = await supabase.from('profile').update({ biography: bio }).eq('id', user?.id).select();
-    if (error) alert('There was an error while updating the username');
+    if (error) alert('There was an error while updating the biography');
 
     alert('You have successfully updated your bio!');
   };

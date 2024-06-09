@@ -77,7 +77,7 @@ export default function UserProfilePage() {
 
       if (data.length > 0) setTrips(tripDetailsData);
     } catch (err) {
-      console.log(err);
+      console.log('[id] profile page: ', err);
       alert('There was an error while retriving data from the server');
     } finally {
       setLoading(false);

@@ -33,12 +33,14 @@ export default function Favourites() {
       const keys = await AsyncStorage.getAllKeys();
       const result = await AsyncStorage.multiGet(keys);
 
-      const filteredResult = result.filter(([key, value]:[string, string]) => {
+      //@ts-ignore
+      const filteredResult = result.filter(([key, value]: [string, string]) => {
         // Check if value is not null and is equal to "true"
         return value !== null && JSON.parse(value) === true;
       });
 
-      const filteredIds = filteredResult.map(([key, value]:[string, string]) => parseInt(key));
+      //@ts-ignore
+      const filteredIds = filteredResult.map(([key, value]: [string, string]) => parseInt(key));
 
       const { data, error } = await supabase.from('trip').select(`*, category(*), profile_trip(role, profile(*))`).in('id', filteredIds).order('id');
 
@@ -67,7 +69,7 @@ export default function Favourites() {
         setTrips(tripDetailsData);
       }
     } catch (err) {
-      console.log(err);
+      console.log('favourites: ', err);
       alert('There was an error while fetching data from the server');
     } finally {
       setLoading(false);

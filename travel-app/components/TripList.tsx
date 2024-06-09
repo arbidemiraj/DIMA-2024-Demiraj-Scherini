@@ -29,6 +29,7 @@ export default function TripList({ trips, isLoading, handleEndReached }: Props) 
   return (
     <FlatList
       // For memory optimization
+      key={numColumns}
       removeClippedSubviews
       data={trips}
       keyExtractor={(item, index) => index.toString()}

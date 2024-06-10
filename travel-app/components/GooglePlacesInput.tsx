@@ -1,12 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
-import { Platform, Pressable, View, Text } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import CategoriesBottomSheet from '@/components/CategoriesBottomSheet';
 import useStore from '@/store/store';
+import { Text } from '@/components/Themed';
 
 interface Props {
   toggleOverlay: () => void;
@@ -58,7 +59,7 @@ const GooglePlacesInput = ({ toggleOverlay, handlePlaceSelect, handleCategorySel
           {categoriesList.map((category) => (
             <Pressable onPress={toggleModal} key={category}>
               {({ pressed }) => (
-                <Text style={{ padding: 5, borderRadius: 5, backgroundColor: 'white', fontWeight: 'bold', paddingHorizontal: 10, opacity: pressed ? 0.5 : 1 }}>
+                <Text style={{ padding: 5, borderRadius: 5, backgroundColor: useColorScheme() === 'light' ? 'white' : '#333', fontWeight: 'bold', paddingHorizontal: 10, opacity: pressed ? 0.5 : 1 }}>
                   {category.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}
                 </Text>
               )}

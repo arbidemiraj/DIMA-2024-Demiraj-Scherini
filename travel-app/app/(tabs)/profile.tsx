@@ -39,7 +39,7 @@ export default function ProfilePage() {
       if (error) throw error;
       setUser(data);
     } catch (err) {
-      console.log(err);
+      console.log('profile: ', err);
       alert('Error while fetching the user');
     }
   };
@@ -76,7 +76,7 @@ export default function ProfilePage() {
 
       if (data.length > 0) setTrips(tripDetailsData);
     } catch (err) {
-      console.log('profile: ', err);
+      console.log('profile trips: ', err);
       alert('There was an error while retriving data from the server');
     } finally {
       setLoading(false);

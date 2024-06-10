@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, AppState, Pressable, TextInput, ImageBackground, useColorScheme } from 'react-native';
+import { StyleSheet, AppState, Pressable, ImageBackground, useColorScheme } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Text, View, SafeAreaView } from '@/components/Themed';
-import { View as DefaultView, Text as DefaultText, Image } from 'react-native';
+import { View as DefaultView, Text as DefaultText, Image, TextInput } from 'react-native';
 import CustomButton from '@/components/CustomButton';
 import { Link } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { Iconify } from 'react-native-iconify';
+import { StatusBar } from 'expo-status-bar';
 
 // Tells Supabase Auth to continuously refresh the session automatically if
 // the app is in the foreground. When this is added, you will continue to receive
@@ -46,6 +47,7 @@ export default function Signup() {
 
   return (
     <ImageBackground source={require('../../assets/images/background.jpg')} style={styles.backgroundImage}>
+      <StatusBar style='light' />
       <View style={{ backgroundColor: 'rgba(0,0,0,0.25)', flex: 1 }}>
         <SafeAreaView style={{ backgroundColor: 'transparent', flex: 1 }} edges={['top']}>
           <View style={{ flex: 0.6, backgroundColor: 'transparent' }}>

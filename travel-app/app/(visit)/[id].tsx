@@ -79,7 +79,7 @@ export default function Visit() {
 
       setComments(commentsData);
     } catch (err) {
-      console.log(err);
+      console.log('comments: ', err);
       alert('Error while fetching the comments');
     } finally {
       setLoading(false);

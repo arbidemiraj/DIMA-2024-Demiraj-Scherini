@@ -66,6 +66,7 @@ export default function Favourites() {
           })),
         }));
 
+        console.log('tripDetailsData: ', tripDetailsData);  
         setTrips(tripDetailsData);
       }
     } catch (err) {

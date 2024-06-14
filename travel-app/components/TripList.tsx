@@ -22,7 +22,7 @@ export default function TripList({ trips, isLoading, handleEndReached }: Props) 
   // Simple loader to be rendered while loading
   const renderFooter = () => {
     if (!isLoading) return null;
-    return <ActivityIndicator size='large' color={useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint} style={{ marginTop: 15 }} />;
+    return <ActivityIndicator testID={'loading-indicator'} size='large' color={useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint} style={{ marginTop: 15 }} />;
   };
 
   // This is the actual page content

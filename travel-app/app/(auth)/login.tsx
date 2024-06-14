@@ -77,7 +77,7 @@ export default function Login() {
                   </View>
                 </DefaultView>
               </DefaultView>
-              <CustomButton text='Login' altStyle={false} func={signInWithEmail} />
+              <CustomButton testID='login-button' text='Login' altStyle={false} func={signInWithEmail} />
               <DefaultView style={{ marginVertical: 25, justifyContent: 'center', flexDirection: 'row', gap: 5 }}>
                 <Text style={{ fontSize: 16 }}>Don’t have an account?</Text>
                 <Link style={{ fontSize: 16, fontWeight: 'bold', color: useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint }} href={{ pathname: '/(auth)/signup' }} replace>

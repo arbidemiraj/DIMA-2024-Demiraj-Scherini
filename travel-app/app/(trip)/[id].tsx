@@ -210,7 +210,7 @@ export default function Trip() {
             <DefaultView style={styles.overlay}>
               <DefaultView style={{ padding: 20, marginBottom: 10 }}>
                 <Text style={{ color: Colors.dark.text, fontWeight: 'bold', fontSize: 28 }}>{trip?.name}</Text>
-                <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>Author - {trip?.partecipants[0].profile.username}</Text>
+                <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>Author - {trip?.partecipants.filter((x) => x.role === 'author')[0].profile.username}</Text>
                 <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>
                   From {useDateFormatter(trip?.start_date!)} to {useDateFormatter(trip?.end_date!)}
                 </Text>

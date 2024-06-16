@@ -64,7 +64,7 @@ export default function Settings() {
   };
 
   const doLogOut = async () => {
-    console.log('logging out');
+    //console.log('logging out');
     const { error } = await supabase.auth.signOut();
     if (error) alert('Impossible to logout');
   };

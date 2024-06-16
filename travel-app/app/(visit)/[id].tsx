@@ -76,8 +76,10 @@ export default function Visit() {
         commentContent: x.comment,
         user: x.profile?.username!,
       }));
-
       setComments(commentsData);
+
+      console.log(data);
+      console.log(commentsData);
     } catch (err) {
       console.log('comments: ', err);
       alert('Error while fetching the comments');

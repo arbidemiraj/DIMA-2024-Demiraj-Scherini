@@ -18,7 +18,7 @@ interface Props {
   func: () => void;
 }
 
-export default function CustomButton({testID, text, altStyle, func }: Props) {
+export default function CustomButton({ testID, text, altStyle, func }: Props) {
   const isLightTheme = useColorScheme() === 'light';
 
   const computeBackground = (): ViewStyle => {
@@ -38,7 +38,7 @@ export default function CustomButton({testID, text, altStyle, func }: Props) {
   };
 
   return (
-    <View style={[styles.container, computeBackground()]}>
+    <View style={[styles.container, computeBackground()]} testID='btn-wrapper'>
       <Pressable testID={testID} onPress={func} style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', paddingHorizontal: 20, paddingVertical: 10 }}>
         {({ pressed }) => <Text style={[styles.text, computeTextColor(), { opacity: pressed ? 0.5 : 1 }]}>{text}</Text>}
       </Pressable>

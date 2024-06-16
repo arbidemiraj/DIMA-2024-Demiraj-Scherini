@@ -40,7 +40,7 @@ export default function Signup() {
     //console.log("sign up");
     setLoading(false);
     if (error) {
-      console.log(error.message);
+      //console.log(error.message);
       alert(error.message);
     }
   }

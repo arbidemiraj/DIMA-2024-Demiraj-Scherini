@@ -1,10 +1,9 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import Trip from '../[id]'; // Adjust the import based on your file structure
+import Trip from '../[id]';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 
 global.alert = jest.fn();
 

@@ -53,6 +53,7 @@ export default function UserProfilePage() {
       let query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
       query.eq('profile_trip.profile.id', id).eq('profile_trip.role', 'author');
       const { data, error } = await query.order('start_date');
+      console.log(data);
 
       if (error) throw error;
       if (trips === null) throw error;
@@ -89,7 +90,7 @@ export default function UserProfilePage() {
       <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild push>
         <Pressable>
           <View style={{ paddingHorizontal: 2, paddingVertical: 2 }}>
-            <Image source={{ uri: trip.cover_url }} style={{ minHeight: 120, resizeMode: 'cover', borderRadius: 10, height: '100%' }} />
+            <Image testID={trip.cover_url} source={{ uri: trip.cover_url }} style={{ minHeight: 120, resizeMode: 'cover', borderRadius: 10, height: '100%' }} />
           </View>
         </Pressable>
       </Link>

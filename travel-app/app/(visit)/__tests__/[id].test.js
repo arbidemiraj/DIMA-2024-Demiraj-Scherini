@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import React from 'react';
+import { waitFor } from '@testing-library/react-native';
 import Visit from '../[id]';
 import { supabase } from '@/lib/supabase';
-import { renderRouter, screen } from 'expo-router/testing-library';
+import { renderRouter } from 'expo-router/testing-library';
 
 // Mock the necessary modules and dependencies
 jest.mock('@gorhom/bottom-sheet', () => {
@@ -132,7 +132,7 @@ describe('Visit Component', () => {
 
   it('should display visit details correctly', async () => {
     const VisitComp = jest.fn(() => <Visit />);
-    const { getByText, queryAllByText } = renderRouter(
+    const { getByText } = renderRouter(
       {
         index: VisitComp,
         '/(visit)/1': VisitComp,
@@ -151,7 +151,7 @@ describe('Visit Component', () => {
 
   it('should display comments correctly', async () => {
     const VisitComp = jest.fn(() => <Visit />);
-    const { getByText, queryAllByText } = renderRouter(
+    const { queryAllByText } = renderRouter(
       {
         index: VisitComp,
         '/(visit)/1': VisitComp,

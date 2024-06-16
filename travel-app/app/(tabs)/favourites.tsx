@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TripDetails } from '@/types/types';
 import { supabase } from '@/lib/supabase';
-import { View } from '@/components/Themed';
+import { View, Text } from '@/components/Themed';
 import TripList from '@/components/TripList';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -66,7 +66,6 @@ export default function Favourites() {
           })),
         }));
 
-        console.log('tripDetailsData: ', tripDetailsData);  
         setTrips(tripDetailsData);
       }
     } catch (err) {
@@ -79,7 +78,13 @@ export default function Favourites() {
 
   return (
     <View style={styles.container}>
-      <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
+      {trips.length === 0 && !isLoading ? (
+        <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center', flex: 1 }}>
+          <Text style={[styles.title, { textAlign: 'center' }]}>No favourite journals yet</Text>
+        </View>
+      ) : (
+        <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
+      )}
     </View>
   );
 }
@@ -87,5 +92,9 @@ export default function Favourites() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });

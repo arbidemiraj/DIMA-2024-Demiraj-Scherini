@@ -29,4 +29,28 @@ describe('CustomButton', () => {
     fireEvent.press(button);
     expect(ButtonPropsMock.func).toHaveBeenCalledTimes(1);
   });
+
+  it('renders with alt style false', () => {
+    ButtonPropsMock.altStyle = false;
+    const { getByTestId, getByText } = render(<CustomButton {...ButtonPropsMock} />);
+
+    // check button and text color
+    const button = getByTestId('btn-wrapper');
+    expect(button.props.style[1][1].backgroundColor).toBe('#171717');
+
+    const buttonText = getByText('Test');
+    expect(buttonText.props.style[1][1].color).toBe('#F5F5F5');
+  });
+
+  it('renders with alt style true', () => {
+    ButtonPropsMock.altStyle = true;
+    const { getByTestId, getByText } = render(<CustomButton {...ButtonPropsMock} />);
+
+    // check button and text color
+    const button = getByTestId('btn-wrapper');
+    expect(button.props.style[1][1].backgroundColor).toBe('transparent');
+
+    const buttonText = getByText('Test');
+    expect(buttonText.props.style[1][1].color).toBe('#262626');
+  });
 });

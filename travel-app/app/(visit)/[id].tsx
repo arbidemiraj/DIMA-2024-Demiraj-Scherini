@@ -76,7 +76,6 @@ export default function Visit() {
         commentContent: x.comment,
         user: x.profile?.username!,
       }));
-
       setComments(commentsData);
     } catch (err) {
       console.log('comments: ', err);

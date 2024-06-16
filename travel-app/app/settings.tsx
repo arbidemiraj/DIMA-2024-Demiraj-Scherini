@@ -64,7 +64,7 @@ export default function Settings() {
   };
 
   const doLogOut = async () => {
-    console.log('logging out');
+    //console.log('logging out');
     const { error } = await supabase.auth.signOut();
     if (error) alert('Impossible to logout');
   };
@@ -140,17 +140,25 @@ export default function Settings() {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={styles.inputHeader}>Full name</Text>
             <TouchableOpacity>
-              <Pressable onPress={handleUpdateUsername}>{({ pressed }) => <Iconify style={{ opacity: pressed ? 0.5 : 1 }} icon='material-symbols:send' size={26} color={tintColor} />}</Pressable>
+              <Pressable testID='update-name-btn' onPress={handleUpdateUsername}>
+                {({ pressed }) => <Iconify style={{ opacity: pressed ? 0.5 : 1 }} icon='material-symbols:send' size={26} color={tintColor} />}
+              </Pressable>
             </TouchableOpacity>
           </View>
-          <View style={{ borderBottomWidth: 1, marginVertical: 10, paddingVertical: 10 }}>{user && <TextInput style={{ color: textColor }} value={username} onChangeText={setUsername} />}</View>
+          <View style={{ borderBottomWidth: 1, marginVertical: 10, paddingVertical: 10 }}>
+            {user && <TextInput testID='usernameInput' style={{ color: textColor }} value={username} onChangeText={setUsername} />}
+          </View>
         </View>
         <View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={styles.inputHeader}>Biography (max 400 characters)</Text>
-            <Pressable onPress={handleUpdateBio}>{({ pressed }) => <Iconify style={{ opacity: pressed ? 0.5 : 1 }} icon='material-symbols:send' size={26} color={tintColor} />}</Pressable>
+            <Pressable testID='update-bio-btn' onPress={handleUpdateBio}>
+              {({ pressed }) => <Iconify style={{ opacity: pressed ? 0.5 : 1 }} icon='material-symbols:send' size={26} color={tintColor} />}
+            </Pressable>
           </View>
-          <View style={{ borderBottomWidth: 1, marginVertical: 10, paddingVertical: 10 }}>{user && <TextInput style={{ color: textColor }} multiline value={bio} onChangeText={setBio} />}</View>
+          <View style={{ borderBottomWidth: 1, marginVertical: 10, paddingVertical: 10 }}>
+            {user && <TextInput testID='bioInput' style={{ color: textColor }} multiline value={bio} onChangeText={setBio} />}
+          </View>
         </View>
       </View>
       <View style={styles.section}>

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, AppState, Pressable, ImageBackground, useColorScheme } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
-import { Text, View, SafeAreaView } from '@/components/Themed';
-import { View as DefaultView, Text as DefaultText, Image, TextInput } from 'react-native';
+import { Text, View, SafeAreaView, TextInput } from '@/components/Themed';
+import { View as DefaultView, Text as DefaultText, Image } from 'react-native';
 import CustomButton from '@/components/CustomButton';
 import { Link } from 'expo-router';
 import Colors from '@/constants/Colors';
@@ -40,7 +40,7 @@ export default function Signup() {
     //console.log("sign up");
     setLoading(false);
     if (error) {
-      console.log(error.message);
+      //console.log(error.message);
       alert(error.message);
     }
   }

@@ -63,7 +63,7 @@ export default function Trip() {
       if (error) throw error;
 
       // map query data result to VisitDetails[]
-      console.dir(data);
+      //console.dir(data);
       const visits: VisitDetails[] = data.map((visit) => ({
         id: visit.id,
         description: visit.description,
@@ -206,11 +206,11 @@ export default function Trip() {
           <View style={{ height: 350, backgroundColor: '#333' }}></View>
         ) : (
           <View>
-            <Image source={{ uri: trip?.cover_url }} style={styles.image} />
+            <Image testID='cover-image' source={{ uri: trip?.cover_url }} style={styles.image} />
             <DefaultView style={styles.overlay}>
               <DefaultView style={{ padding: 20, marginBottom: 10 }}>
                 <Text style={{ color: Colors.dark.text, fontWeight: 'bold', fontSize: 28 }}>{trip?.name}</Text>
-                <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>Author - {trip?.partecipants[0].profile.username}</Text>
+                <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>Author - {trip?.partecipants.filter((x) => x.role === 'author')[0].profile.username}</Text>
                 <Text style={[{ color: Colors.dark.text }, styles.overlayText]}>
                   From {useDateFormatter(trip?.start_date!)} to {useDateFormatter(trip?.end_date!)}
                 </Text>
@@ -257,7 +257,7 @@ export default function Trip() {
                 <View key={index} style={{ flexBasis: '30%', aspectRatio: 1, maxHeight: 175, maxWidth: 175, minWidth: 100, minHeight: 100, marginBottom: 5 }}>
                   <Link href={{ pathname: '/(visit)/[id]', params: { id: visit.id } }} asChild>
                     <Pressable>
-                      <Image key={index} source={{ uri: visit.images[0].url! }} style={{ height: '100%', width: '100%', resizeMode: 'cover', borderRadius: 10 }} />
+                      <Image testID='visit-image' key={index} source={{ uri: visit.images[0].url! }} style={{ height: '100%', width: '100%', resizeMode: 'cover', borderRadius: 10 }} />
                     </Pressable>
                   </Link>
                 </View>

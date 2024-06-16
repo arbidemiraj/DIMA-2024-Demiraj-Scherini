@@ -53,7 +53,6 @@ export default function UserProfilePage() {
       let query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
       query.eq('profile_trip.profile.id', id).eq('profile_trip.role', 'author');
       const { data, error } = await query.order('start_date');
-      console.log(data);
 
       if (error) throw error;
       if (trips === null) throw error;

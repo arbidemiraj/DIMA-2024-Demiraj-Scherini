@@ -88,7 +88,7 @@ export default function ProfilePage() {
       <Link href={{ pathname: '/(trip)/[id]', params: { id: trip.id } }} asChild>
         <Pressable>
           <View style={{ paddingHorizontal: 2, paddingVertical: 2 }}>
-            <Image source={{ uri: trip.cover_url }} style={{ minHeight: 120, resizeMode: 'cover', borderRadius: 10, height: '100%' }} />
+            <Image testID={trip.cover_url} source={{ uri: trip.cover_url }} style={{ minHeight: 120, resizeMode: 'cover', borderRadius: 10, height: '100%' }} />
           </View>
         </Pressable>
       </Link>

@@ -9,6 +9,7 @@ import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-nat
 
 import Toast from 'react-native-toast-message';
 import ImageSlide from './ImageSlide';
+import { set } from 'date-fns';
 
 type SetStateFunction<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -60,6 +61,8 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
         title: activityInfos.title,
         photos: activityInfos.photos,
       });
+
+      setIsPlaceSelected(true);
 
       autocompleteRef.current?.setAddressText(activityInfos.title);
     } else {
@@ -142,15 +145,15 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: Platform.OS === 'ios' ? topPadding : 20,
-          backgroundColor: 'white',
+          backgroundColor: backgroundColor,
           paddingBottom: 10,
         }}
       >
-        <Pressable onPress={toggleModal}>
+        <Pressable testID="back-button" onPress={toggleModal}>
           <Iconify icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
         </Pressable>
 
-        <Pressable onPress={handleClose}>
+        <Pressable testID="check-button" onPress={handleClose}>
           <Iconify icon='ic:round-check' size={28} color={textColor} style={{ marginRight: 15, flex: 1 }} />
         </Pressable>
       </View>

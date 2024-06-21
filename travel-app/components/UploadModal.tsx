@@ -8,7 +8,7 @@ interface Props {
 }
 
 
-export default function NewActivityModal({ loading, isModalVisible }: Props) {
+export default function UploadModal({ loading, isModalVisible }: Props) {
 
     return (
         <Modal visible={isModalVisible} transparent={true} animationType="slide">
@@ -16,7 +16,7 @@ export default function NewActivityModal({ loading, isModalVisible }: Props) {
                 <View style={styles.modalView}>
                     {loading ? (
                         <>
-                            <ActivityIndicator size='large' color={useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint} style={{ marginTop: 15 }} />
+                            <ActivityIndicator testID='activity-indicator' size='large' color={useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint} style={{ marginTop: 15 }} />
                             <Text>Creating journal...</Text>
                         </>
                     ) : (

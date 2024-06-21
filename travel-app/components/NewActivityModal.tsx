@@ -145,7 +145,7 @@ export default function NewActivityModal({ isModalVisible, toggleModal, index, a
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: Platform.OS === 'ios' ? topPadding : 20,
-          backgroundColor: 'white',
+          backgroundColor: backgroundColor,
           paddingBottom: 10,
         }}
       >

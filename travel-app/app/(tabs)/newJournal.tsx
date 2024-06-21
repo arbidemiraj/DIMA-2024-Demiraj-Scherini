@@ -182,6 +182,8 @@ export default function NewJournal() {
         const ext = photo.split('.').pop();
         const filePath = `${userID}/${Date.now()}.${ext}`;
 
+        console.log(base64);
+
         const { data: storageData, error: storageError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: `image/${ext}` });
 
         if (storageError) {
@@ -202,7 +204,7 @@ export default function NewJournal() {
 
       console.log('Images uploaded successfully');
     } catch (error) {
-      console.error('Error uploading images:', error);
+      console.log('Error uploading images:', error);
       throw error; // Propagate the error to handle it in createJournal
     }
   };
@@ -212,7 +214,7 @@ export default function NewJournal() {
       await supabase.from('trip').delete().eq('id', tripId);
       console.log('Trip deleted successfully:', tripId);
     } catch (error) {
-      console.error('Error deleting trip:', tripId, error);
+      console.log('Error deleting trip:', tripId, error);
     }
   };
 
@@ -264,7 +266,7 @@ export default function NewJournal() {
       });
 
       if (error) {
-        console.error('Error creating journal:', error);
+        console.log('Error creating journal:', error);
         return;
       }
 
@@ -278,7 +280,7 @@ export default function NewJournal() {
       //Change function to return also the visits if needed
 
       if (visitError) {
-        console.error('Error fetching visits:', visitError);
+        console.log('Error fetching visits:', visitError);
         await deleteTrip(insertedTripId);
         return;
       }
@@ -298,7 +300,7 @@ export default function NewJournal() {
         router.push('/'); // Redirect to home screen
       }, 1000);
     } catch (error) {
-      console.error('Error creating journal or uploading images:', error);
+      console.log('Error creating journal or uploading images:', error);
 
       // If there's an error, delete the trip and associated records
       if (error) {
@@ -321,7 +323,7 @@ export default function NewJournal() {
 
   function CreateButton(): ReactNode {
     return (
-      <Pressable style={styles.createIcon} onPress={createJournal}>
+      <Pressable testID='upload-btn' style={styles.createIcon} onPress={createJournal}>
         <Iconify icon='material-symbols:upload' size={26} style={{ marginRight: 5 }} color={tintColor} />
       </Pressable>
     );
@@ -419,7 +421,7 @@ export default function NewJournal() {
             );
           })}
           <View style={styles.activity}>
-            <Pressable onPress={() => toggleNewActivityModal()}>
+            <Pressable testID="toggle-activity-modal" onPress={() => toggleNewActivityModal()}>
               <Iconify icon='basil:add-solid' size={34} color={textColor} />
             </Pressable>
           </View>

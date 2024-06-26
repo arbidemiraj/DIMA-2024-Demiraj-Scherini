@@ -20,7 +20,9 @@ export default function CalendarInput({ selectedDates, setSelectedDates }: Props
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
   useEffect(() => {
-    if(selectedDates.startDate === null) {
+    console.log(selectedDates.startDate, selectedDates.endDate);
+
+    if(selectedDates.startDate === undefined) {
       setDateInput('');
     }
   }, [selectedDates])

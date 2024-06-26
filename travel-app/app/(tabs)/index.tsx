@@ -34,7 +34,6 @@ export default function TabOneScreen() {
     getTrips();
   }, [coordinates, categoryFilter]); //added filters dependencies
 
-
   // When the user reaches the end of the list this function gets called
   const handleEndReached = () => {
     console.log('end: ', hasMore);
@@ -137,7 +136,13 @@ export default function TabOneScreen() {
         <GooglePlacesInput toggleOverlay={toggleOverlay} handlePlaceSelect={handlePlaceSelect} handleCategorySelect={handleCategorySelect} />
       </SafeAreaView>
 
-      <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
+      {trips.length === 0 && !isLoading ? (
+        <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center', flex: 1 }}>
+          <Text style={[styles.title, { textAlign: 'center' }]}>No journals for this location yet</Text>
+        </View>
+      ) : (
+        <TripList trips={trips} isLoading={isLoading} handleEndReached={handleEndReached} />
+      )}
       {showOverlay && <View style={styles.overlay} />}
     </View>
   );
@@ -146,6 +151,10 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

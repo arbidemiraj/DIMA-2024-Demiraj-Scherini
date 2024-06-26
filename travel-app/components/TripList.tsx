@@ -1,5 +1,5 @@
-import { FlatList, ActivityIndicator, useColorScheme, Dimensions } from 'react-native';
-import React from 'react';
+import { FlatList, ActivityIndicator, useColorScheme, Dimensions, View } from 'react-native';
+import React, { useEffect } from 'react';
 import { TripDetails } from '@/types/types';
 import Colors from '@/constants/Colors';
 import TripCard from './TripCard';
@@ -27,21 +27,24 @@ export default function TripList({ trips, isLoading, handleEndReached }: Props) 
 
   // This is the actual page content
   return (
-    <FlatList
-      // For memory optimization
-      key={numColumns}
-      removeClippedSubviews
-      data={trips}
-      keyExtractor={(item, index) => index.toString()}
-      initialNumToRender={5}
-      // Render a TripCard component for each trip
-      renderItem={({ item }) => <TripCard trip={item} />}
-      ListFooterComponent={renderFooter}
-      // These attributes handle infinite scrolling
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.3}
-      //TODO: address responsiveness
-      numColumns={numColumns}
-    />
+    <View style={{flex: 1}}>
+      {trips.length > 0 && <FlatList
+        // For memory optimization
+        key={numColumns}
+        removeClippedSubviews={true}
+        data={trips}
+        keyExtractor={(item, index) => index.toString()}
+        initialNumToRender={5}
+        // Render a TripCard component for each trip
+        renderItem={({ item }) => <TripCard trip={item} />}
+        ListFooterComponent={renderFooter}
+        // These attributes handle infinite scrolling
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.1}
+        //TODO: address responsiveness
+        numColumns={numColumns}
+      />}
+    </View>
+
   );
 }

@@ -83,7 +83,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: Platform.OS === 'ios' ? topPadding : topPadding + 20,
-          backgroundColor: 'white',
+          backgroundColor: backgroundColor,
           paddingBottom: 10,
         }}
       >

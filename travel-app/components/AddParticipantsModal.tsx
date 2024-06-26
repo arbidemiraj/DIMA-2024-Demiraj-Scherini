@@ -74,6 +74,12 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
     }
   };
 
+  const closeModal = () => {
+    toggleModal();
+    OnChangeUser('');
+    setSearchResults([]);
+  };
+
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true}>
       <View
@@ -83,15 +89,15 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: Platform.OS === 'ios' ? topPadding : topPadding + 20,
-          backgroundColor: 'white',
+          backgroundColor: backgroundColor,
           paddingBottom: 10,
         }}
       >
-        <Pressable onPress={toggleModal}>
+        <Pressable onPress={closeModal}>
           <Iconify testID='close-button' icon='ion:chevron-back-outline' size={28} color={textColor} style={{ marginLeft: 15, flex: 1 }} />
         </Pressable>
 
-        <Pressable onPress={toggleModal}>
+        <Pressable onPress={closeModal}>
           <Iconify icon='ic:round-check' size={28} color={textColor} style={{ marginRight: 15, flex: 1 }} />
         </Pressable>
       </View>

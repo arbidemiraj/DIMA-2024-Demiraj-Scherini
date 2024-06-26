@@ -65,7 +65,6 @@ export default function NewJournal() {
   const [insertedTripId, setInsertedTripId] = useState<number>(0); // Store the inserted trip ID for future use
   const [loadingUpload, setLoadingUpload] = useState<boolean>(false); // Loading state for image upload
   const [modalUpload, setModalUpload] = useState<boolean>(false); // Modal state for image upload
-  const [uploadProgress, setUploadProgress] = useState<number>(0); // Progress of image upload
 
   const backgroundColor = useColorScheme() === 'light' ? Colors.light.background : Colors.dark.background;
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
@@ -87,8 +86,6 @@ export default function NewJournal() {
     monuments: 9,
     wildlife: 10,
   };
-
-  const [reload, setReload] = useState(false);
 
   //Handles the addition of a new activity by adding the state variable for the associated tooltip
   useEffect(() => {
@@ -173,6 +170,26 @@ export default function NewJournal() {
     );
   }
 
+  const resetPage = () => {
+    setImage('');
+    onChangeDescription('');
+    onChangeTitle('');
+    onChangeGivenStar(3);
+    setModalVisible(false);
+    setActivityModalVisible(false);
+    setNewActivityModalVisible(false);
+    setParticipants([]);
+    setActivities([]);
+    setSelectedActivity({ title: '', description: '', photos: [] });
+    setTooltipHandlers(Array(activities.length).fill(false));
+    setTripCategories([]);
+    setSelectedDates({});
+    setInsertedTripId(0);
+    setLoadingUpload(false);
+    setModalUpload(false);
+  };
+
+  
   const uploadImages = async (visitId: number, photos: string[], userID: string) => {
     try {
       const imageInsertData: { visit_id: number; url: string }[] = [];
@@ -297,7 +314,8 @@ export default function NewJournal() {
 
       setTimeout(() => {
         setModalUpload(false);
-        router.push('/'); // Redirect to home screen
+        resetPage();
+        router.replace('/'); // Redirect to home screen
       }, 1000);
     } catch (error) {
       console.log('Error creating journal or uploading images:', error);
@@ -307,14 +325,6 @@ export default function NewJournal() {
         await deleteTrip(insertedTripId);
       }
     }
-  };
-
-  const confirmJournalCreation = () => {
-    router.replace('/');
-  };
-
-  const showUploadingAlert = () => {
-    Alert.alert('Success', 'Journal created successfully', [{ text: 'OK', onPress: () => confirmJournalCreation() }]);
   };
 
   const showAlert = () => {

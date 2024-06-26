@@ -19,6 +19,14 @@ export default function CalendarInput({ selectedDates, setSelectedDates }: Props
   const [dateInput, setDateInput] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
+  useEffect(() => {
+    console.log(selectedDates.startDate, selectedDates.endDate);
+
+    if(selectedDates.startDate === undefined) {
+      setDateInput('');
+    }
+  }, [selectedDates])
+
   const onDayPress = (day: DateObject) => {
     let updatedSelectedDates = {...selectedDates};
 

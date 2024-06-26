@@ -34,9 +34,11 @@ export default function TabOneScreen() {
     getTrips();
   }, [coordinates, categoryFilter]); //added filters dependencies
 
+
   // When the user reaches the end of the list this function gets called
   const handleEndReached = () => {
-    console.log('hasmore: ', hasMore);
+    console.log('end: ', hasMore);
+    console.log('loading: ', isLoading);
     if (hasMore) {
       getTrips();
     }

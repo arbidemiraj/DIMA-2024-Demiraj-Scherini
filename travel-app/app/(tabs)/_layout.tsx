@@ -48,7 +48,6 @@ export default function TabLayout() {
           headerShown: false,
           title: 'New Journal',
           headerTitleAlign: 'center',
-          unmountOnBlur: true,
           tabBarIcon: ({ color }) => <TabBarIcon name='plus' color={color} />,
         }}
       />

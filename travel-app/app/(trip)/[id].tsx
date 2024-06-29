@@ -202,11 +202,9 @@ export default function Trip() {
       {Platform.OS === 'android' && <Stack.Screen options={{ headerShown: false }} />}
       {/* modify the status bar only in this page*/}
       <DefaultView style={styles.imageContainer}>
-        {isLoading ? (
-          <View style={{ height: 350, backgroundColor: '#333' }}></View>
-        ) : (
-          <View>
-            <Image testID='cover-image' source={{ uri: trip?.cover_url }} style={styles.image} />
+        <View>
+          <Image testID='cover-image' source={{ uri: trip?.cover_url }} style={styles.image} />
+          {trip && (
             <DefaultView style={styles.overlay}>
               <DefaultView style={{ padding: 20, marginBottom: 10 }}>
                 <Text style={{ color: Colors.dark.text, fontWeight: 'bold', fontSize: 28 }}>{trip?.name}</Text>
@@ -220,8 +218,8 @@ export default function Trip() {
                 <FavouriteButton />
               </View>
             </DefaultView>
-          </View>
-        )}
+          )}
+        </View>
       </DefaultView>
       <View style={styles.container}>
         <View style={styles.section}>

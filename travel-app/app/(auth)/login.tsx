@@ -101,7 +101,8 @@ const styles = StyleSheet.create({
     padding: 12,
     height: '50%',
     flex: 1,
-    borderRadius: 30,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   verticallySpaced: {
     paddingTop: 4,

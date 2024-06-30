@@ -70,6 +70,7 @@ export default function NewJournal() {
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
   const tintColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
   const placeHolderColor = useColorScheme() === 'light' ? '#979797' : '#aaaaaa';
+  const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
 
   const userID = useAuth().user?.id;
   const router = useRouter();
@@ -118,7 +119,11 @@ export default function NewJournal() {
   };
 
   const addParticipant = (user: User) => {
-    if (user.username !== null && !participants.includes(user))
+    console.log(participants, user);
+    
+    if (user.username !== null && !participants.some(p => p.username === user.username)){
+      console.log('Adding participant:', user);
+
       setParticipants((prevParticipants) => {
         if (user.username) {
           return [...prevParticipants, user];
@@ -126,7 +131,10 @@ export default function NewJournal() {
           return prevParticipants; // Return previous state if username is falsy
         }
       });
-  };
+  }else{
+    global.alert('User already added');
+  }
+};
 
   const toggleOptionModal = (index: number) => {
     const updated = [...tooltipHandlers];
@@ -405,7 +413,7 @@ export default function NewJournal() {
 
       <View style={{ paddingVertical: 15, marginHorizontal: 20 }}>
         <Text style={styles.title}>Activities</Text>
-
+        {activities.length > 0 && <Text style={{ color: placeHolderColor, fontStyle: 'italic', fontSize: 12, marginBottom: 10 }}>Long press on an activity to edit or delete it</Text>}
         <ScrollView keyboardShouldPersistTaps={'handled'} horizontal={true} style={styles.activityContainer}>
           {activities.map((activity, index) => {
             return (
@@ -414,6 +422,7 @@ export default function NewJournal() {
                   key={index}
                   closeOnContentInteraction={true}
                   isVisible={tooltipHandlers[index]}
+                  contentStyle={{ backgroundColor: backgroundColor, borderRadius: 20 }}
                   content={<TooltipContent index={index}></TooltipContent>}
                   placement='center'
                   onClose={() => toggleOptionModal(index)}

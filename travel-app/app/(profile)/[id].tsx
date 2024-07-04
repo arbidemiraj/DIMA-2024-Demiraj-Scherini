@@ -1,6 +1,7 @@
-import { StyleSheet, Image, useColorScheme } from 'react-native';
+import { StyleSheet, Image, useColorScheme, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Profile, TripDetails } from '@/types/types';
@@ -12,6 +13,9 @@ import { ScrollView } from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
 import Colors from '@/constants/Colors';
 import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
+import { Calendar } from 'react-native-calendars';
+import ParticipantChip from '@/components/ParticipantChip';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence } from 'react-native-reanimated';
 
 export default function UserProfilePage() {
   const { id } = useLocalSearchParams();
@@ -19,15 +23,35 @@ export default function UserProfilePage() {
   const [user, setUser] = useState<Profile>();
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const [isLoading, setLoading] = useState<boolean>(false);
-
+  const [selected, setSelected] = useState<boolean>(true);
+  const Tab = createMaterialTopTabNavigator();
   const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+  const tintColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
+  const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
+  const { width } = Dimensions.get('window');
+  const isTablet = width > 730;
+  const opacity = useSharedValue(1);
 
   useFocusEffect(
     useCallback(() => {
+      setSelected(true);
       getUser();
       getTrips();
     }, [])
   );
+
+  useEffect(() => {
+    setTrips([]);
+    getTrips();
+    opacity.value = withSequence(
+      withTiming(0),
+      withTiming(1, { duration: 1000 })
+    );
+  }, [selected]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const getUser = async () => {
     try {
@@ -50,8 +74,15 @@ export default function UserProfilePage() {
     try {
       if (!id) return;
 
-      let query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
-      query.eq('profile_trip.profile.id', id).eq('profile_trip.role', 'author');
+      let query;
+
+      if (selected) {
+        query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
+        query.eq('profile_trip.profile.id', id).eq('profile_trip.role', 'author');
+      } else {
+        query = supabase.from('trip').select(`*, category!inner(*), profile_trip!inner(role, profile!inner(*)), visit!inner(lat, long, description, name, image(*))`);
+        query.eq('profile_trip.profile.id', id).eq('profile_trip.role', 'participant');
+      }
       const { data, error } = await query.order('start_date');
 
       if (error) throw error;
@@ -112,15 +143,39 @@ export default function UserProfilePage() {
         <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSizeTitle() }]}>Biography</Text>
         <Text style={{ fontSize: useFontSize() }}>{user?.biography}</Text>
       </View>
-      <View style={[styles.section, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
-        {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
-        {trips.length === 0 && !isLoading && (
-          <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
-            <Iconify icon='tabler:photo-off' size={64} color={iconColor} style={{ margin: 20 }} />
-            <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
-          </View>
-        )}
+      <View style={{ marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: 20, gap: 5 }}>
+        <TouchableOpacity
+          testID='my-trips-button'
+          style={[
+            { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10, borderBottomWidth: 2, flexDirection: 'row', gap: 10 },
+            { borderColor: selected ? tintColor : separatorColor }
+          ]}
+          onPress={() => setSelected(true)}
+        >
+          {isTablet && <Text>My Trips</Text>}<Iconify icon='akar-icons:grid' color={iconColor} size={30} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID='tagged-trips-button'
+          style={[
+            { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10, borderBottomWidth: 2, flexDirection: 'row', gap: 10 },
+            { borderColor: selected ? separatorColor : tintColor }
+          ]}
+          onPress={() => setSelected(false)}
+        >
+          {isTablet && <Text>Tagged Trips</Text>}<Iconify icon='bxs:user-account' color={iconColor} size={30} />
+        </TouchableOpacity>
       </View>
+      {isLoading
+        ? <ActivityIndicator size={'large'} style={{ marginTop: 50 }} color={tintColor}></ActivityIndicator>
+        : <Animated.View style={[animatedStyle, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
+          {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
+          {trips.length === 0 && !isLoading && (
+            <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
+              <Iconify icon='tabler:photo-off' size={64} color={iconColor} style={{ margin: 20 }} />
+              <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
+            </View>
+          )}
+        </Animated.View>}
     </ScrollView>
   );
 }

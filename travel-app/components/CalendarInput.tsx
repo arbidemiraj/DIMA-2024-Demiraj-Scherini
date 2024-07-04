@@ -70,15 +70,16 @@ export default function CalendarInput({ selectedDates, setSelectedDates }: Props
   };
   return (
     <View style={{ flex: 1, flexDirection: 'row' }}>
-      <View style={{ width: '100%' }}>
-        <Pressable style={[styles.dateInput, { backgroundColor: '#fff', alignItems: 'center' }]} onPress={() => setShowDatePicker(!showDatePicker)}>
+      <View style={{ width: '100%', borderRadius: 20}}>
+        <Pressable style={[styles.dateInput, { backgroundColor: '#fff', alignItems: 'center'}]} onPress={() => setShowDatePicker(!showDatePicker)}>
           {({ pressed }) => <Text style={{ color: '#000', opacity: pressed ? 0.5 : 1 }}>{dateInput ? dateInput : 'Select a Date'}</Text>}
         </Pressable>
         {showDatePicker && (
-          <View>
-            <Calendar testID={'calendar-component'} markingType={'period'} onDayPress={onDayPress} markedDates={getMarkedDates()} maxDate={new Date().toISOString()} />
+          <View style={{backgroundColor: '#fff', borderRadius: 30}}>
+            
+            <Calendar style={{borderRadius: 30}} theme={{backgroundColor: 'transparent'}} testID={'calendar-component'} markingType={'period'} onDayPress={onDayPress} markedDates={getMarkedDates()} maxDate={new Date().toISOString()} />
             <TouchableOpacity>
-              <View style={{ backgroundColor: Colors.light.tint }}>
+              <View style={{ backgroundColor: Colors.light.tint, borderRadius: 30, alignSelf:'center', margin: 20, width: 250,}}>
                 <CustomButton func={() => setShowDatePicker(!showDatePicker)} text='Confirm' altStyle={true} />
               </View>
             </TouchableOpacity>

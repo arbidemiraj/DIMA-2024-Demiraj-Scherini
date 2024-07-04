@@ -80,6 +80,12 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
     setSearchResults([]);
   };
 
+  const handleAddParticipant = (user: User) => {
+    addParticipant(user);
+    OnChangeUser('');
+    setSearchResults([]);
+  }
+
   return (
     <Modal visible={isModalVisible} statusBarTranslucent={true}>
       <View
@@ -120,8 +126,7 @@ export default function AddParticipantsModal({ isModalVisible, toggleModal, part
                 >
                   <Text>{item.username}</Text>
                 </Pressable>
-                {/* Display other user information as needed */}
-                <Pressable onPress={() => addParticipant(item)}>
+                <Pressable onPress={() => handleAddParticipant(item)}>
                   <Iconify testID='add-button' icon='gala:add' size={22} color={iconColor} style={{ alignSelf: 'flex-end' }} />
                 </Pressable>
               </View>

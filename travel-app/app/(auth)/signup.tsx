@@ -27,6 +27,8 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
+
   async function signUpWithEmail() {
     setLoading(true);
     const {
@@ -65,14 +67,14 @@ export default function Signup() {
                   <Text style={{ fontWeight: '500', fontSize: 15 }}>Email</Text>
                   <View style={{ borderBottomWidth: 1, marginTop: 5, flexDirection: 'row', gap: 8, paddingVertical: 10 }}>
                     <Iconify icon='ic:outline-email' size={22} color={useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator} />
-                    <TextInput onChangeText={(text) => setEmail(text)} value={email} placeholder='Type in your email...' autoCapitalize={'none'} editable={true} style={{ flex: 1 }} />
+                    <TextInput onChangeText={(text) => setEmail(text)} value={email} placeholder='Type in your email...' placeholderTextColor={textColor} autoCapitalize={'none'} editable={true} style={{ flex: 1 }} />
                   </View>
                 </DefaultView>
                 <DefaultView style={{ marginVertical: 10 }}>
                   <Text style={{ fontWeight: '500', fontSize: 15 }}>Password</Text>
                   <View style={{ borderBottomWidth: 1, marginTop: 5, flexDirection: 'row', gap: 8, paddingVertical: 10 }}>
                     <Iconify icon='carbon:password' size={22} color={useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator} />
-                    <TextInput onChangeText={(text) => setPassword(text)} value={password} secureTextEntry={true} placeholder='Password' autoCapitalize={'none'} style={{ flex: 1 }} />
+                    <TextInput onChangeText={(text) => setPassword(text)} value={password} secureTextEntry={true} placeholder='Password' placeholderTextColor={textColor} autoCapitalize={'none'} style={{ flex: 1 }} />
                   </View>
                 </DefaultView>
               </DefaultView>

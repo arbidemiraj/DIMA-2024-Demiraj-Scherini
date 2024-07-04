@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
+import { waitFor, fireEvent } from '@testing-library/react-native';
 import { supabase } from '@/lib/supabase';
 import { renderRouter } from 'expo-router/testing-library';
 import UserProfilePage from '../profile';
@@ -135,5 +135,34 @@ describe('UserProfilePage Component', () => {
       expect(getByTestId(mockTripsData[0].cover_url)).toBeTruthy();
       expect(getByTestId(mockTripsData[1].cover_url)).toBeTruthy();
     });
+  });
+
+  it('should correctly handle switches from my trip to tagged trips', async () =>  {
+    const ProfilePage = jest.fn(() => <UserProfilePage />);
+    const { getByTestId } = renderRouter(
+      {
+        index: ProfilePage,
+        '/(profile)/1': ProfilePage,
+      },
+      {
+        initialUrl: '/(profile)/1',
+      }
+    );
+
+    const myTripsButton = getByTestId('my-trips-button');
+    const participatedTripsButton = getByTestId('tagged-trips-button');
+
+    expect(myTripsButton.props.style.borderColor).toBe('#3B82F6');
+    expect(participatedTripsButton.props.style.borderColor).toBe('#CCCCCC');
+    
+    fireEvent.press(participatedTripsButton);
+
+    
+    await waitFor(() => {
+      expect(participatedTripsButton.props.style.borderColor).toBe('#3B82F6');
+      expect(myTripsButton.props.style.borderColor).toBe('#CCCCCC');
+      expect(supabase.from).toHaveBeenCalledWith('trip');
+    });
+
   });
 });

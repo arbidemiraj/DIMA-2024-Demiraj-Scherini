@@ -54,6 +54,8 @@ describe('Signup Screen testing', () => {
     fireEvent.changeText(emailInput, 'wrong@email.it');
     const pswInput = getByPlaceholderText('Password');
     fireEvent.changeText(pswInput, 'short');
+    const usernameInput = getByPlaceholderText('Username');
+    fireEvent.changeText(usernameInput, 'usernameTest');
 
     fireEvent.press(signupButton);
 
@@ -64,6 +66,11 @@ describe('Signup Screen testing', () => {
       expect(mockSignUpWithEmail).toHaveBeenCalledWith({
         email: 'wrong@email.it',
         password: 'short',
+        options: {
+          data: {
+            username: 'usernameTest',
+          },
+        },
       });
     });
   });
@@ -82,6 +89,8 @@ describe('Signup Screen testing', () => {
     fireEvent.changeText(emailInput, 'wrongemail');
     const pswInput = getByPlaceholderText('Password');
     fireEvent.changeText(pswInput, 'password');
+    const usernameInput = getByPlaceholderText('Username');
+    fireEvent.changeText(usernameInput, 'usernameTest');
 
     fireEvent.press(signupButton);
 
@@ -92,7 +101,35 @@ describe('Signup Screen testing', () => {
       expect(mockSignUpWithEmail).toHaveBeenCalledWith({
         email: 'wrongemail',
         password: 'password',
+        options: {
+          data: {
+            username: 'usernameTest',
+          },
+        },
       });
+    });
+  });
+  it('should display an error message when the username is empty', async () => {
+    const { getByText, getByPlaceholderText } = render(<Signup />);
+    const signupButton = getByText('SignUp');
+
+    // Set up the mock to return the error response
+    mockSignUpWithEmail.mockResolvedValue({
+      data: { session: null },
+      error: { message: 'Username cannot be empty' },
+    });
+
+    const emailInput = getByPlaceholderText('Type in your email...');
+    fireEvent.changeText(emailInput, 'sample@email.com');
+    const pswInput = getByPlaceholderText('Password');
+    fireEvent.changeText(pswInput, 'password');
+    const usernameInput = getByPlaceholderText('Username');
+    fireEvent.changeText(usernameInput, '');
+
+    fireEvent.press(signupButton);
+
+    await waitFor(() => {
+      expect(global.alert).toHaveBeenCalledWith('Username cannot be empty');
     });
   });
 });

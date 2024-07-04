@@ -24,12 +24,17 @@ AppState.addEventListener('change', (state) => {
 
 export default function Signup() {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const textColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
 
   async function signUpWithEmail() {
+    if (username === '') {
+      alert('Username cannot be empty');
+      return;
+    }
     setLoading(true);
     const {
       data: { session },
@@ -37,6 +42,7 @@ export default function Signup() {
     } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: { data: { username: username } },
     });
 
     //console.log("sign up");
@@ -52,7 +58,7 @@ export default function Signup() {
       <StatusBar style='light' />
       <View style={{ backgroundColor: 'rgba(0,0,0,0.25)', flex: 1 }}>
         <SafeAreaView style={{ backgroundColor: 'transparent', flex: 1 }} edges={['top']}>
-          <View style={{ flex: 0.6, backgroundColor: 'transparent' }}>
+          <View style={{ flex: 0.5, backgroundColor: 'transparent' }}>
             <DefaultView style={{ padding: 30 }}>
               <Image source={require('../../assets/images/icon.png')} style={{ width: 64, height: 64, borderRadius: 10, marginBottom: 20 }} />
               <DefaultText style={{ color: 'white', fontSize: 22, fontWeight: '500' }}>Travel Buds </DefaultText>
@@ -67,14 +73,37 @@ export default function Signup() {
                   <Text style={{ fontWeight: '500', fontSize: 15 }}>Email</Text>
                   <View style={{ borderBottomWidth: 1, marginTop: 5, flexDirection: 'row', gap: 8, paddingVertical: 10 }}>
                     <Iconify icon='ic:outline-email' size={22} color={useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator} />
-                    <TextInput onChangeText={(text) => setEmail(text)} value={email} placeholder='Type in your email...' placeholderTextColor={textColor} autoCapitalize={'none'} editable={true} style={{ flex: 1 }} />
+                    <TextInput
+                      onChangeText={(text) => setEmail(text)}
+                      value={email}
+                      placeholder='Type in your email...'
+                      placeholderTextColor={textColor}
+                      autoCapitalize={'none'}
+                      editable={true}
+                      style={{ flex: 1 }}
+                    />
+                  </View>
+                </DefaultView>
+                <DefaultView style={{ marginVertical: 10 }}>
+                  <Text style={{ fontWeight: '500', fontSize: 15 }}>Username</Text>
+                  <View style={{ borderBottomWidth: 1, marginTop: 5, flexDirection: 'row', gap: 8, paddingVertical: 10 }}>
+                    <Iconify icon='carbon:user-filled' size={22} color={useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator} />
+                    <TextInput onChangeText={(text) => setUsername(text)} value={username} placeholder='Username' placeholderTextColor={textColor} autoCapitalize={'none'} style={{ flex: 1 }} />
                   </View>
                 </DefaultView>
                 <DefaultView style={{ marginVertical: 10 }}>
                   <Text style={{ fontWeight: '500', fontSize: 15 }}>Password</Text>
                   <View style={{ borderBottomWidth: 1, marginTop: 5, flexDirection: 'row', gap: 8, paddingVertical: 10 }}>
                     <Iconify icon='carbon:password' size={22} color={useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator} />
-                    <TextInput onChangeText={(text) => setPassword(text)} value={password} secureTextEntry={true} placeholder='Password' placeholderTextColor={textColor} autoCapitalize={'none'} style={{ flex: 1 }} />
+                    <TextInput
+                      onChangeText={(text) => setPassword(text)}
+                      value={password}
+                      secureTextEntry={true}
+                      placeholder='Password'
+                      placeholderTextColor={textColor}
+                      autoCapitalize={'none'}
+                      style={{ flex: 1 }}
+                    />
                   </View>
                 </DefaultView>
               </DefaultView>

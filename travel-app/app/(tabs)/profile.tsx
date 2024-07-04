@@ -13,7 +13,6 @@ import { Iconify } from 'react-native-iconify';
 import Colors from '@/constants/Colors';
 import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence } from 'react-native-reanimated';
-import { set } from 'date-fns';
 
 export default function ProfilePage() {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -39,12 +38,8 @@ export default function ProfilePage() {
   useEffect(() => {
     setTrips([]);
     getTrips();
-    opacity.value = withSequence(
-      withTiming(0),
-      withTiming(1, { duration: 1000 })
-    );
+    opacity.value = withSequence(withTiming(0), withTiming(1, { duration: 1000 }));
   }, [selected]);
-
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -57,7 +52,6 @@ export default function ProfilePage() {
         return;
       }
       const { data, error } = await supabase.from('profile').select('*').eq('id', userID).single();
-
       if (error) throw error;
       setUser(data);
     } catch (err) {
@@ -133,33 +127,36 @@ export default function ProfilePage() {
       />
       <View style={styles.section}>
         <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSizeTitle() }]}>Biography</Text>
-        <Text style={{ fontSize: useFontSize() }}>{user?.biography}</Text>
+        <Text style={{ fontSize: useFontSize() }}>{user?.biography !== "''" ? user?.biography : 'No biography yet...'}</Text>
       </View>
       <View style={{ marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: 20, gap: 5 }}>
         <TouchableOpacity
           testID='my-trips-button'
           style={[
             { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10, borderBottomWidth: 2, flexDirection: 'row', gap: 10 },
-            { borderColor: selected ? tintColor : separatorColor }
+            { borderColor: selected ? tintColor : separatorColor },
           ]}
           onPress={() => setSelected(true)}
         >
-          {isTablet && <Text>My Trips</Text>}<Iconify icon='akar-icons:grid' color={iconColor} size={30} />
+          {isTablet && <Text>My Trips</Text>}
+          <Iconify icon='akar-icons:grid' color={iconColor} size={30} />
         </TouchableOpacity>
         <TouchableOpacity
           testID='tagged-trips-button'
           style={[
             { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10, borderBottomWidth: 2, flexDirection: 'row', gap: 10 },
-            { borderColor: selected ? separatorColor : tintColor }
+            { borderColor: selected ? separatorColor : tintColor },
           ]}
           onPress={() => setSelected(false)}
         >
-          {isTablet && <Text>Tagged Trips</Text>}<Iconify icon='bxs:user-account' color={iconColor} size={30} />
+          {isTablet && <Text>Tagged Trips</Text>}
+          <Iconify icon='bxs:user-account' color={iconColor} size={30} />
         </TouchableOpacity>
       </View>
-      {isLoading 
-        ? <ActivityIndicator size={'large'} style={{ marginTop: 50 }} color={tintColor}></ActivityIndicator>
-        : <Animated.View style={[animatedStyle, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
+      {isLoading ? (
+        <ActivityIndicator size={'large'} style={{ marginTop: 50 }} color={tintColor}></ActivityIndicator>
+      ) : (
+        <Animated.View style={[animatedStyle, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
           {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
           {trips.length === 0 && !isLoading && (
             <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
@@ -167,7 +164,8 @@ export default function ProfilePage() {
               <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
             </View>
           )}
-        </Animated.View>}
+        </Animated.View>
+      )}
     </ScrollView>
   );
 }

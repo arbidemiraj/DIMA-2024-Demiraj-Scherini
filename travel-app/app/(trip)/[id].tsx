@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Text, View } from '@/components/Themed';
+import { Text, View, ScrollView } from '@/components/Themed';
 import { View as DefaultView, Modal, Platform } from 'react-native';
 import useDateFormatter from '@/hooks/useDateFormatter';
 import { Link, useLocalSearchParams } from 'expo-router';
@@ -12,7 +12,6 @@ import { Stack, useRouter } from 'expo-router';
 import { Iconify } from 'react-native-iconify';
 import { Pressable } from 'react-native';
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
-import { ScrollView } from 'react-native-gesture-handler';
 import TripMap from '@/components/TripMap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -184,6 +183,21 @@ export default function Trip() {
     return style;
   };
 
+  function CategoriesComponent() {
+    return (
+      <View style={{ flexWrap: 'wrap', flexDirection: 'row', gap: 10 }}>
+        {trip?.categories.map((category) => (
+          <Text
+            style={{ padding: 5, borderRadius: 5, backgroundColor: useColorScheme() === 'light' ? '#eee' : '#333', fontWeight: 'bold', paddingHorizontal: 10, fontSize: useFontSize() }}
+            key={category.id}
+          >
+            {category.name.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}
+          </Text>
+        ))}
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.item} snapToAlignment={'start'} scrollEnabled={scrollEnabled} onScroll={handleScroll} scrollEventThrottle={1}>
       {/* modify the back arrow to be always white only in this page, create a custom function that compute the correct color*/}
@@ -221,6 +235,9 @@ export default function Trip() {
           )}
         </View>
       </DefaultView>
+      <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>
+        <CategoriesComponent />
+      </View>
       <View style={styles.container}>
         <View style={styles.section}>
           <View style={[styles.sectionHeader, { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
@@ -321,7 +338,8 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 0,
+    paddingBottom: 30,
   },
   section: {
     marginVertical: 20,

@@ -1,7 +1,6 @@
 import { StyleSheet, Image, useColorScheme, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from '@/components/Themed';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Profile, TripDetails } from '@/types/types';
@@ -13,8 +12,6 @@ import { ScrollView } from '@/components/Themed';
 import { Iconify } from 'react-native-iconify';
 import Colors from '@/constants/Colors';
 import { useFontSize, useFontSizeTitle } from '@/hooks/useFontSize';
-import { Calendar } from 'react-native-calendars';
-import ParticipantChip from '@/components/ParticipantChip';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence } from 'react-native-reanimated';
 
 export default function UserProfilePage() {
@@ -24,7 +21,6 @@ export default function UserProfilePage() {
   const [trips, setTrips] = useState<TripDetails[]>([]);
   const [isLoading, setLoading] = useState<boolean>(false);
   const [selected, setSelected] = useState<boolean>(true);
-  const Tab = createMaterialTopTabNavigator();
   const iconColor = useColorScheme() === 'light' ? Colors.light.text : Colors.dark.text;
   const tintColor = useColorScheme() === 'light' ? Colors.light.tint : Colors.dark.tint;
   const separatorColor = useColorScheme() === 'light' ? Colors.light.separator : Colors.dark.separator;
@@ -43,10 +39,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     setTrips([]);
     getTrips();
-    opacity.value = withSequence(
-      withTiming(0),
-      withTiming(1, { duration: 1000 })
-    );
+    opacity.value = withSequence(withTiming(0), withTiming(1, { duration: 1000 }));
   }, [selected]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -141,33 +134,36 @@ export default function UserProfilePage() {
       />
       <View style={styles.section}>
         <Text style={[styles.title, styles.sectionHeader, { fontSize: useFontSizeTitle() }]}>Biography</Text>
-        <Text style={{ fontSize: useFontSize() }}>{user?.biography}</Text>
+        <Text style={{ fontSize: useFontSize() }}>{user?.biography !== "''" ? user?.biography : 'No biography yet...'}</Text>
       </View>
       <View style={{ marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: 20, gap: 5 }}>
         <TouchableOpacity
           testID='my-trips-button'
           style={[
             { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10, borderBottomWidth: 2, flexDirection: 'row', gap: 10 },
-            { borderColor: selected ? tintColor : separatorColor }
+            { borderColor: selected ? tintColor : separatorColor },
           ]}
           onPress={() => setSelected(true)}
         >
-          {isTablet && <Text>My Trips</Text>}<Iconify icon='akar-icons:grid' color={iconColor} size={30} />
+          {isTablet && <Text>My Trips</Text>}
+          <Iconify icon='akar-icons:grid' color={iconColor} size={30} />
         </TouchableOpacity>
         <TouchableOpacity
           testID='tagged-trips-button'
           style={[
             { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10, borderBottomWidth: 2, flexDirection: 'row', gap: 10 },
-            { borderColor: selected ? separatorColor : tintColor }
+            { borderColor: selected ? separatorColor : tintColor },
           ]}
           onPress={() => setSelected(false)}
         >
-          {isTablet && <Text>Tagged Trips</Text>}<Iconify icon='bxs:user-account' color={iconColor} size={30} />
+          {isTablet && <Text>Tagged Trips</Text>}
+          <Iconify icon='bxs:user-account' color={iconColor} size={30} />
         </TouchableOpacity>
       </View>
-      {isLoading
-        ? <ActivityIndicator size={'large'} style={{ marginTop: 50 }} color={tintColor}></ActivityIndicator>
-        : <Animated.View style={[animatedStyle, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
+      {isLoading ? (
+        <ActivityIndicator size={'large'} style={{ marginTop: 50 }} color={tintColor}></ActivityIndicator>
+      ) : (
+        <Animated.View style={[animatedStyle, { paddingBottom: 80, paddingHorizontal: 10, paddingVertical: 20 }]}>
           {trips.length > 0 && <GridLayout isScrollNested={false} data={trips} renderItem={(item) => <Item trip={item} />} numColumns={3} />}
           {trips.length === 0 && !isLoading && (
             <View style={{ justifyContent: 'center', width: '100%', alignContent: 'center', alignItems: 'center' }}>
@@ -175,7 +171,8 @@ export default function UserProfilePage() {
               <Text style={[styles.title, { textAlign: 'center' }]}>No journals yet</Text>
             </View>
           )}
-        </Animated.View>}
+        </Animated.View>
+      )}
     </ScrollView>
   );
 }
